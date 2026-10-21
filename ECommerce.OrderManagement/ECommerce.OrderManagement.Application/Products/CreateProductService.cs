@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Exceptions;
+using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Products.DTOs;
 using ECommerce.OrderManagement.Domain.Entities;
 using System;
@@ -25,6 +26,19 @@ namespace ECommerce.OrderManagement.Application.Products
             int stock,
             CancellationToken cancellationToken)
         {
+
+            var normalizedSku = sku.Trim();
+
+            var skuExists = await _productRepository.ExistsBySkuAsync(
+                normalizedSku,
+                excludeProductId: null,
+                cancellationToken);
+
+            if (skuExists)
+            {
+                throw new DuplicateProductSkuException(normalizedSku);
+            }
+
             var product = new Product(name, sku, price, stock);
 
             await _productRepository.AddAsync(

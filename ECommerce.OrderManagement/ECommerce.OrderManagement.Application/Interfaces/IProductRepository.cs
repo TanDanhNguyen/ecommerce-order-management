@@ -21,5 +21,14 @@ namespace ECommerce.OrderManagement.Application.Interfaces
             int pageNumber,
             int pageSize,
             CancellationToken cancellationToken);
+
+        Task<bool> ExistsBySkuAsync(
+            string sku,
+            Guid? excludeProductId,
+            CancellationToken cancellationToken);
+
+        Task UpdateAsync(
+            Product product,
+            CancellationToken cancellationToken);
     }
 }

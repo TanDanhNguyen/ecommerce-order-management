@@ -87,5 +87,39 @@ namespace ECommerce.OrderManagement.Domain.Entities
         {
             IsActive = false;
         }
+        public void UpdateDetails(string name, string sku)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException(
+                    "Product name is required.",
+                    nameof(name));
+
+            if (name.Trim().Length > 200)
+                throw new ArgumentException(
+                    "Product name cannot exceed 200 characters.",
+                    nameof(name));
+
+            if (string.IsNullOrWhiteSpace(sku))
+                throw new ArgumentException(
+                    "Product SKU is required.",
+                    nameof(sku));
+
+            if (sku.Trim().Length > 50)
+                throw new ArgumentException(
+                    "Product SKU cannot exceed 50 characters.",
+                    nameof(sku));
+
+            Name = name.Trim();
+            Sku = sku.Trim();
+        }
+        public void SetStock(int stock)
+        {
+            if (stock < 0)
+                throw new ArgumentOutOfRangeException(
+                    nameof(stock),
+                    "Stock cannot be negative.");
+
+            Stock = stock;
+        }
     }
 }

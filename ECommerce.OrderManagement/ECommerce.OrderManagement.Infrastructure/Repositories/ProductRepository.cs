@@ -59,5 +59,31 @@ namespace ECommerce.OrderManagement.Infrastructure.Repositories
 
             return (items, totalCount);
         }
+
+        public async Task<bool> ExistsBySkuAsync(
+            string sku,
+            Guid? excludeProductId,
+            CancellationToken cancellationToken)
+        {
+            var query = _dbContext.Products
+                .Where(p => p.Sku == sku);
+
+            if (excludeProductId.HasValue)
+            {
+                query = query.Where(
+                    p => p.Id != excludeProductId.Value);
+            }
+
+            return await query.AnyAsync(cancellationToken);
+        }
+
+        public async Task UpdateAsync(
+            Product product,
+            CancellationToken cancellationToken)
+        {
+            _dbContext.Products.Update(product);
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

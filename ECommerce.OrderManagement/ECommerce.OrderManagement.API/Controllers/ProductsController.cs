@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Products;
+﻿using ECommerce.OrderManagement.API.Requests;
+using ECommerce.OrderManagement.Application.Products;
 using ECommerce.OrderManagement.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,17 +14,20 @@ namespace ECommerce.OrderManagement.API.Controllers
         private readonly CreateProductService _createProductService;
         private readonly GetProductsService _getProductsService;
         private readonly GetProductByIdService _getProductByIdService;
+        private readonly UpdateProductService _updateProductService;
         private readonly ECommerceDbContext _dbContext;
 
         public ProductsController(
             CreateProductService createProductService,
             GetProductsService getProductsService,
             GetProductByIdService getProductByIdService,
+            UpdateProductService updateProductService,
             ECommerceDbContext dbContext)
         {
             _createProductService = createProductService;
             _getProductsService = getProductsService;
             _getProductByIdService = getProductByIdService;
+            _updateProductService = updateProductService;
             _dbContext = dbContext;
         }
 
@@ -82,23 +86,24 @@ namespace ECommerce.OrderManagement.API.Controllers
 
             return Ok(result);
         }
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> Update(
+    Guid id,
+    [FromBody] UpdateProductRequest request,
+    CancellationToken cancellationToken)
+        {
+            var updated = await _updateProductService.UpdateAsync(
+                id,
+                request.Name,
+                request.Sku,
+                request.Price,
+                request.Stock,
+                cancellationToken);
 
-    }
+            if (!updated)
+                return NotFound();
 
-    public class CreateProductRequest
-    {
-        [Required]
-        [StringLength(200, MinimumLength = 1)]
-        public string Name { get; set; } = string.Empty;
-
-        [Required]
-        [StringLength(50, MinimumLength = 1)]
-        public string Sku { get; set; } = string.Empty;
-
-        [Range(typeof(decimal), "0.01", "9999999999999999")]
-        public decimal Price { get; set; }
-
-        [Range(0, int.MaxValue)]
-        public int Stock { get; set; }
+            return NoContent();
+        }
     }
 }

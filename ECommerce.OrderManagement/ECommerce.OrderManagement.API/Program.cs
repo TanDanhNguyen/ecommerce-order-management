@@ -1,5 +1,6 @@
-using ECommerce.OrderManagement.Infrastructure;
+using ECommerce.OrderManagement.API.Middleware;
 using ECommerce.OrderManagement.Application;
+using ECommerce.OrderManagement.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
