@@ -1,4 +1,5 @@
 ﻿using ECommerce.OrderManagement.Application.Interfaces;
+using ECommerce.OrderManagement.Application.Products.DTOs;
 using ECommerce.OrderManagement.Domain.Entities;
 using System;
 using System.Collections.Generic;

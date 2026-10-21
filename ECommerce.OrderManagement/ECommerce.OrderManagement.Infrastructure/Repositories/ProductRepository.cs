@@ -39,5 +39,25 @@ namespace ECommerce.OrderManagement.Infrastructure.Repositories
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task<(IReadOnlyList<Product> Items, int TotalCount)> GetPagedAsync(
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+        {
+            var query = _dbContext.Products
+                .AsNoTracking()
+                .OrderBy(p => p.CreatedAtUtc)
+                .ThenBy(p => p.Id);
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
+        }
     }
 }

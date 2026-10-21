@@ -11,13 +11,19 @@ namespace ECommerce.OrderManagement.API.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly CreateProductService _createProductService;
+        private readonly GetProductsService _getProductsService;
+        private readonly GetProductByIdService _getProductByIdService;
         private readonly ECommerceDbContext _dbContext;
 
         public ProductsController(
             CreateProductService createProductService,
+            GetProductsService getProductsService,
+            GetProductByIdService getProductByIdService,
             ECommerceDbContext dbContext)
         {
             _createProductService = createProductService;
+            _getProductsService = getProductsService;
+            _getProductByIdService = getProductByIdService;
             _dbContext = dbContext;
         }
 
@@ -44,11 +50,9 @@ namespace ECommerce.OrderManagement.API.Controllers
             Guid id,
             CancellationToken cancellationToken)
         {
-            var product = await _dbContext.Products
-                .AsNoTracking()
-                .FirstOrDefaultAsync(
-                    p => p.Id == id,
-                    cancellationToken);
+            var product = await _getProductByIdService.GetByIdAsync(
+                id,
+                cancellationToken);
 
             if (product is null)
                 return NotFound();
@@ -64,6 +68,21 @@ namespace ECommerce.OrderManagement.API.Controllers
                 product.CreatedAtUtc
             });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPaged(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await _getProductsService.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                cancellationToken);
+
+            return Ok(result);
+        }
+
     }
 
     public class CreateProductRequest

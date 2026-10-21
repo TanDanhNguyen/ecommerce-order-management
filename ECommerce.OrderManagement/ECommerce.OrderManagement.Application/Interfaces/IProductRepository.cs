@@ -16,5 +16,10 @@ namespace ECommerce.OrderManagement.Application.Interfaces
         Task AddAsync(
             Product product,
             CancellationToken cancellationToken);
+
+        Task<(IReadOnlyList<Product> Items, int TotalCount)> GetPagedAsync(
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken);
     }
 }
