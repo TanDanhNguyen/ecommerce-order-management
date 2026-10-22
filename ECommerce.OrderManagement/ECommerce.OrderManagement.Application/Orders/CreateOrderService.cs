@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Exceptions;
+using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Requests;
 using ECommerce.OrderManagement.Domain.Entities;
 
@@ -65,7 +66,7 @@ namespace ECommerce.OrderManagement.Application.Orders
                         $"Product '{product.Name}' is inactive.");
 
                 if (product.Stock < quantity)
-                    throw new InvalidOperationException(
+                    throw new InsufficientStockException(
                         $"Insufficient stock for product '{product.Name}'.");
             }
 

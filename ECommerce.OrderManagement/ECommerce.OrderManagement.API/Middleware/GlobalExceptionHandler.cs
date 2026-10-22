@@ -14,6 +14,8 @@ namespace ECommerce.OrderManagement.API.Middleware
             _logger = logger;
         }
 
+
+
         public async ValueTask<bool> TryHandleAsync(
             HttpContext httpContext,
             Exception exception,
@@ -21,9 +23,26 @@ namespace ECommerce.OrderManagement.API.Middleware
         {
             var statusCode = exception switch
             {
-                DuplicateProductSkuException => StatusCodes.Status409Conflict,
-                ArgumentException => StatusCodes.Status400BadRequest,
-                _ => StatusCodes.Status500InternalServerError
+                KeyNotFoundException =>
+                    StatusCodes.Status404NotFound,
+
+                OrderConcurrencyException =>
+                    StatusCodes.Status409Conflict,
+
+                DuplicateProductSkuException =>
+                    StatusCodes.Status409Conflict,
+
+                InsufficientStockException =>
+                    StatusCodes.Status409Conflict,
+
+                InvalidOperationException =>
+                    StatusCodes.Status409Conflict,
+
+                ArgumentException =>
+                    StatusCodes.Status400BadRequest,
+
+                _ =>
+                    StatusCodes.Status500InternalServerError
             };
 
             if (statusCode == StatusCodes.Status500InternalServerError)
@@ -35,25 +54,34 @@ namespace ECommerce.OrderManagement.API.Middleware
 
             var title = statusCode switch
             {
-                409 => "Conflict",
-                400 => "Bad Request",
-                _ => "An unexpected error occurred."
+                StatusCodes.Status400BadRequest => "Bad Request",
+                StatusCodes.Status404NotFound => "Not Found",
+                StatusCodes.Status409Conflict => "Conflict",
+                _ => "Internal Server Error"
+            };
+
+            var detail = statusCode ==
+                StatusCodes.Status500InternalServerError
+                ? "An unexpected error occurred."
+                : exception.Message;
+
+            var problemDetails = new ProblemDetails
+            {
+                Status = statusCode,
+                Title = title,
+                Detail = detail,
+                Instance = httpContext.Request.Path
             };
 
             httpContext.Response.StatusCode = statusCode;
 
             await httpContext.Response.WriteAsJsonAsync(
-                new ProblemDetails
-                {
-                    Status = statusCode,
-                    Title = title,
-                    Detail = statusCode == 500
-                        ? "An unexpected error occurred."
-                        : exception.Message
-                },
+                problemDetails,
                 cancellationToken);
 
             return true;
         }
+
+
     }
 }

@@ -10,10 +10,31 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ECommerce.OrderManagement.API\ECommerce.OrderManagement.API.csproj" />
+    <ProjectReference Include="..\ECommerce.OrderManagement.Application\ECommerce.OrderManagement.Application.csproj" />
+    <ProjectReference Include="..\ECommerce.OrderManagement.Domain\ECommerce.OrderManagement.Domain.csproj" />
+    <ProjectReference Include="..\ECommerce.OrderManagement.Infrastructure\ECommerce.OrderManagement.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ECommerce.OrderManagement.Application.Products.DTOs
 {
-    public sealed record PagedResult<T>(
+    public sealed record ProductPagedResult<T>(
        IReadOnlyList<T> Items,
        int PageNumber,
        int PageSize,

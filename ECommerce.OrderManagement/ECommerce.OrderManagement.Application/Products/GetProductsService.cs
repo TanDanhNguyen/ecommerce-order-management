@@ -18,7 +18,7 @@ namespace ECommerce.OrderManagement.Application.Products
             _productRepository = productRepository;
         }
 
-        public async Task<PagedResult<ProductDto>> GetPagedAsync(
+        public async Task<ProductPagedResult<ProductDto>> GetPagedAsync(
         int pageNumber,
         int pageSize,
         CancellationToken cancellationToken)
@@ -50,7 +50,7 @@ namespace ECommerce.OrderManagement.Application.Products
                     p.CreatedAtUtc))
                 .ToList();
 
-            return new PagedResult<ProductDto>(
+            return new ProductPagedResult<ProductDto>(
                 items,
                 pageNumber,
                 pageSize,

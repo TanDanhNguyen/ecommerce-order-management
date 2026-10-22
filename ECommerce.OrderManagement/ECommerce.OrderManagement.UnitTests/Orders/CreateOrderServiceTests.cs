@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Exceptions;
+using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Orders;
 using ECommerce.OrderManagement.Application.Requests;
 using ECommerce.OrderManagement.Domain.Entities;
@@ -74,6 +75,156 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
                     It.Is<Order>(o => o.Id == order.Id),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+
+        [Fact]
+        public async Task CreateAsync_InsufficientStock_ThrowsInsufficientStockException()
+        {
+            // Arrange
+            var product = new Product("Keyboard", "KB-002", 100m, 2);
+            var productRepository = CreateProductRepository(product);
+            var orderRepository = new Mock<IOrderRepository>();
+            var transaction = new Mock<IOrderTransaction>();
+
+            var service = new CreateOrderService(
+                productRepository.Object,
+                orderRepository.Object,
+                transaction.Object);
+
+            var request = new CreateOrderRequest(
+                new[]
+                {
+            new CreateOrderItemRequest(product.Id, 3)
+                });
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InsufficientStockException>(
+                () => service.CreateAsync(request, CancellationToken.None));
+
+            Assert.Equal(2, product.Stock);
+
+            orderRepository.Verify(
+                x => x.AddAsync(
+                    It.IsAny<Order>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task CreateAsync_ProductNotFound_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var productRepository = CreateProductRepository();
+            var orderRepository = new Mock<IOrderRepository>();
+            var transaction = new Mock<IOrderTransaction>();
+
+            var service = new CreateOrderService(
+                productRepository.Object,
+                orderRepository.Object,
+                transaction.Object);
+
+            var request = new CreateOrderRequest(
+                new[]
+                {
+            new CreateOrderItemRequest(Guid.NewGuid(), 1)
+                });
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.CreateAsync(request, CancellationToken.None));
+
+            orderRepository.Verify(
+                x => x.AddAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+        [Fact]
+        public async Task CreateAsync_EmptyItems_ThrowsArgumentException()
+        {
+            // Arrange
+            var productRepository = CreateProductRepository();
+            var orderRepository = new Mock<IOrderRepository>();
+            var transaction = new Mock<IOrderTransaction>();
+
+            var service = new CreateOrderService(
+                productRepository.Object,
+                orderRepository.Object,
+                transaction.Object);
+
+            var request = new CreateOrderRequest(
+                Array.Empty<CreateOrderItemRequest>());
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(
+                () => service.CreateAsync(request, CancellationToken.None));
+
+            transaction.Verify(
+                x => x.ExecuteAsync(
+                    It.IsAny<Func<CancellationToken, Task>>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task CreateAsync_ZeroQuantity_ThrowsArgumentException()
+        {
+            // Arrange
+            var product = new Product("Keyboard", "KB-001", 100m, 10);
+
+            var productRepository = CreateProductRepository(product);
+            var orderRepository = new Mock<IOrderRepository>();
+            var transaction = new Mock<IOrderTransaction>();
+
+            var service = new CreateOrderService(
+                productRepository.Object,
+                orderRepository.Object,
+                transaction.Object);
+
+            var request = new CreateOrderRequest(
+                new[]
+                {
+            new CreateOrderItemRequest(product.Id, 0)
+                });
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(
+                () => service.CreateAsync(request, CancellationToken.None));
+
+            Assert.Equal(10, product.Stock);
+        }
+
+        [Fact]
+        public async Task CreateAsync_NullRequest_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var service = new CreateOrderService(
+                CreateProductRepository().Object,
+                new Mock<IOrderRepository>().Object,
+                new Mock<IOrderTransaction>().Object);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(
+                () => service.CreateAsync(
+                    null!,
+                    CancellationToken.None));
+        }
+
+        private static Mock<IProductRepository> CreateProductRepository(
+                params Product[] products)
+            {
+            var repository = new Mock<IProductRepository>();
+
+            repository
+                .Setup(x => x.GetByIdsAsync(
+                    It.IsAny<IReadOnlyCollection<Guid>>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(
+                    (IReadOnlyCollection<Guid> ids, CancellationToken _) =>
+                        (IReadOnlyList<Product>)products
+                            .Where(p => ids.Contains(p.Id))
+                            .ToArray());
+
+            return repository;
         }
     }
 }

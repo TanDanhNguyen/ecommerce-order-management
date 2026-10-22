@@ -9,10 +9,16 @@ namespace ECommerce.OrderManagement.API.Controllers
     public sealed class OrdersController : ControllerBase
     {
         private readonly CreateOrderService _createOrderService;
+        private readonly GetOrderByIdService _getOrderByIdService;
+        private readonly GetOrdersService _getOrdersService;
+        private readonly CancelOrderService _cancelOrderService;
 
-        public OrdersController(CreateOrderService createOrderService)
+        public OrdersController(CreateOrderService createOrderService, GetOrderByIdService getOrderByIdService, GetOrdersService getOrdersService, CancelOrderService cancelOrderService)
         {
             _createOrderService = createOrderService;
+            _getOrderByIdService = getOrderByIdService;
+            _getOrdersService = getOrdersService;
+            _cancelOrderService = cancelOrderService;
         }
 
         [HttpPost]
@@ -48,10 +54,44 @@ namespace ECommerce.OrderManagement.API.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        public IActionResult GetById(Guid id)
+        public async Task<IActionResult> GetById(
+             Guid id,
+             CancellationToken cancellationToken)
         {
-            // Sẽ triển khai truy vấn đơn hàng ở bước sau.
-            return NotFound();
+            var order = await _getOrderByIdService.GetByIdAsync(
+                id,
+                cancellationToken);
+
+            if (order is null)
+                return NotFound();
+
+            return Ok(order);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPaged(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await _getOrdersService.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("{id:guid}/cancel")]
+        public async Task<IActionResult> Cancel(
+        Guid id,
+        CancellationToken cancellationToken)
+        {
+            await _cancelOrderService.CancelAsync(
+                id,
+                cancellationToken);
+
+            return NoContent();
         }
     }
 }

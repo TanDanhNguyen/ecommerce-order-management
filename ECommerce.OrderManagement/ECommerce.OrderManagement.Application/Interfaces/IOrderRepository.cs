@@ -1,9 +1,5 @@
-﻿using ECommerce.OrderManagement.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ECommerce.OrderManagement.Application.Orders.DTOs;
+using ECommerce.OrderManagement.Domain.Entities;
 
 namespace ECommerce.OrderManagement.Application.Interfaces
 {
@@ -12,5 +8,15 @@ namespace ECommerce.OrderManagement.Application.Interfaces
         Task AddAsync(
             Order order,
             CancellationToken cancellationToken);
+
+        Task<Order?> GetByIdAsync(
+            Guid id,
+            CancellationToken cancellationToken);
+
+        Task<(IReadOnlyList<OrderListItemDto> Items, int TotalCount)> GetPagedAsync(
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken);
+
     }
 }

@@ -19,6 +19,9 @@ namespace ECommerce.OrderManagement.Application
             services.AddScoped<GetProductByIdService>();
             services.AddScoped<UpdateProductService>();
             services.AddScoped<CreateOrderService>();
+            services.AddScoped<GetOrderByIdService>();
+            services.AddScoped<GetOrdersService>();
+            services.AddScoped<CancelOrderService>();
 
             return services;
         }

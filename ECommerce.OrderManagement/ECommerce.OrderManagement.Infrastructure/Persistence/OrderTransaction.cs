@@ -1,4 +1,6 @@
-﻿using ECommerce.OrderManagement.Application.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Exceptions;
+using ECommerce.OrderManagement.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,10 +31,14 @@ namespace ECommerce.OrderManagement.Infrastructure.Persistence
             try
             {
                 await operation(cancellationToken);
-
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
-
                 await transaction.CommitAsync(cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+
+                throw new OrderConcurrencyException();
             }
             catch
             {
