@@ -1,11 +1,7 @@
 ﻿using ECommerce.OrderManagement.Application.Orders;
 using ECommerce.OrderManagement.Application.Products;
+using ECommerce.OrderManagement.Infrastructure.Authentication;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ECommerce.OrderManagement.Application
 {
@@ -22,7 +18,7 @@ namespace ECommerce.OrderManagement.Application
             services.AddScoped<GetOrderByIdService>();
             services.AddScoped<GetOrdersService>();
             services.AddScoped<CancelOrderService>();
-
+            services.AddScoped<RegisterService>();
             return services;
         }
     }
