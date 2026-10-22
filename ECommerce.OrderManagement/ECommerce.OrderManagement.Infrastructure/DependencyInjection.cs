@@ -4,6 +4,7 @@ using ECommerce.OrderManagement.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace ECommerce.OrderManagement.Infrastructure
 {
@@ -22,6 +23,10 @@ namespace ECommerce.OrderManagement.Infrastructure
                 options.UseSqlServer(connectionString));
 
             services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IOrderTransaction, OrderTransaction>();
+            services.AddScoped<IOrderUnitOfWork>(
+                    sp => sp.GetRequiredService<ECommerceDbContext>());
 
             return services;
         }

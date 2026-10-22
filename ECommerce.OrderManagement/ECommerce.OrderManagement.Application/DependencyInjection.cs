@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Products;
+﻿using ECommerce.OrderManagement.Application.Orders;
+using ECommerce.OrderManagement.Application.Products;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace ECommerce.OrderManagement.Application
             services.AddScoped<GetProductsService>();
             services.AddScoped<GetProductByIdService>();
             services.AddScoped<UpdateProductService>();
+            services.AddScoped<CreateOrderService>();
+
             return services;
         }
     }

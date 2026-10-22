@@ -85,5 +85,20 @@ namespace ECommerce.OrderManagement.Infrastructure.Repositories
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task<IReadOnlyList<Product>> GetByIdsAsync(
+            IReadOnlyCollection<Guid> ids,
+            CancellationToken cancellationToken)
+        {
+            if (ids.Count == 0)
+            {
+                return Array.Empty<Product>();
+            }
+
+            return await _dbContext.Products
+                .Where(p => ids.Contains(p.Id))
+                .ToListAsync(cancellationToken);
+        }
+
     }
 }

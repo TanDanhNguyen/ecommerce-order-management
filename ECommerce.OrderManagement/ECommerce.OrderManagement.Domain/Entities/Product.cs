@@ -22,6 +22,8 @@ namespace ECommerce.OrderManagement.Domain.Entities
 
         public DateTime CreatedAtUtc { get; private set; }
 
+        public Guid Version { get; private set; } = Guid.NewGuid();
+
         private Product()
         {
         }
@@ -61,6 +63,7 @@ namespace ECommerce.OrderManagement.Domain.Entities
                 throw new ArgumentOutOfRangeException(nameof(price));
 
             Price = price;
+            Version = Guid.NewGuid();
         }
 
         public void DecreaseStock(int quantity)
@@ -73,6 +76,7 @@ namespace ECommerce.OrderManagement.Domain.Entities
                     "Insufficient stock.");
 
             Stock -= quantity;
+            Version = Guid.NewGuid();
         }
 
         public void IncreaseStock(int quantity)
@@ -81,11 +85,13 @@ namespace ECommerce.OrderManagement.Domain.Entities
                 throw new ArgumentOutOfRangeException(nameof(quantity));
 
             Stock = checked(Stock + quantity);
+            Version = Guid.NewGuid();
         }
 
         public void Deactivate()
         {
             IsActive = false;
+            Version = Guid.NewGuid();
         }
         public void UpdateDetails(string name, string sku)
         {
@@ -111,6 +117,7 @@ namespace ECommerce.OrderManagement.Domain.Entities
 
             Name = name.Trim();
             Sku = sku.Trim();
+            Version = Guid.NewGuid();
         }
         public void SetStock(int stock)
         {
@@ -120,6 +127,7 @@ namespace ECommerce.OrderManagement.Domain.Entities
                     "Stock cannot be negative.");
 
             Stock = stock;
+            Version = Guid.NewGuid();
         }
     }
 }

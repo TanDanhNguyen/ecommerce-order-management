@@ -30,5 +30,9 @@ namespace ECommerce.OrderManagement.Application.Interfaces
         Task UpdateAsync(
             Product product,
             CancellationToken cancellationToken);
+
+        Task<IReadOnlyList<Product>> GetByIdsAsync(
+            IReadOnlyCollection<Guid> ids,
+            CancellationToken cancellationToken);
     }
 }
