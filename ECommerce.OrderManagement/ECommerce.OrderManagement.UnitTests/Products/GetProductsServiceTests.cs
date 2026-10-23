@@ -31,10 +31,15 @@ namespace ECommerce.OrderManagement.UnitTests.Products
             new("Mouse", "MS-001", 200m, 20)
         };
 
+
             _repositoryMock
                 .Setup(x => x.GetPagedAsync(
                     1,
                     10,
+                    It.IsAny<string?>(),
+                    It.IsAny<bool?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(((IReadOnlyList<Product>)products, 25));
 
@@ -42,6 +47,10 @@ namespace ECommerce.OrderManagement.UnitTests.Products
             var result = await _service.GetPagedAsync(
                 1,
                 10,
+                It.IsAny<string?>(),
+                It.IsAny<bool?>(),
+                It.IsAny<string?>(),
+                It.IsAny<bool>(),
                 CancellationToken.None);
 
             // Assert
@@ -53,12 +62,18 @@ namespace ECommerce.OrderManagement.UnitTests.Products
             Assert.Equal("Keyboard", result.Items[0].Name);
             Assert.Equal("Mouse", result.Items[1].Name);
 
-            _repositoryMock.Verify(
-                x => x.GetPagedAsync(
+
+            _repositoryMock
+                .Setup(x => x.GetPagedAsync(
                     1,
                     10,
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                    It.IsAny<string?>(),
+                    It.IsAny<bool?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(((IReadOnlyList<Product>)products, 25));
+
         }
 
         [Theory]
@@ -71,20 +86,30 @@ namespace ECommerce.OrderManagement.UnitTests.Products
             int pageNumber,
             int pageSize)
         {
+
             // Act
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
                 () => _service.GetPagedAsync(
                     pageNumber,
                     pageSize,
-                    CancellationToken.None));
+                    search: null,
+                    isActive: null,
+                    sortBy: null,
+                    sortDescending: false,
+                    cancellationToken: CancellationToken.None));
 
             // Assert
             _repositoryMock.Verify(
                 x => x.GetPagedAsync(
                     It.IsAny<int>(),
                     It.IsAny<int>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never);
+
         }
     }
 }

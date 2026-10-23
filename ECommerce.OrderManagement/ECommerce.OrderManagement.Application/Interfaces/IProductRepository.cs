@@ -16,10 +16,13 @@ namespace ECommerce.OrderManagement.Application.Interfaces
         Task AddAsync(
             Product product,
             CancellationToken cancellationToken);
-
         Task<(IReadOnlyList<Product> Items, int TotalCount)> GetPagedAsync(
             int pageNumber,
             int pageSize,
+            string? search,
+            bool? isActive,
+            string? sortBy,
+            bool sortDescending,
             CancellationToken cancellationToken);
 
         Task<bool> ExistsBySkuAsync(
@@ -27,9 +30,7 @@ namespace ECommerce.OrderManagement.Application.Interfaces
             Guid? excludeProductId,
             CancellationToken cancellationToken);
 
-        Task UpdateAsync(
-            Product product,
-            CancellationToken cancellationToken);
+        Task UpdateAsync(CancellationToken cancellationToken);
 
         Task<IReadOnlyList<Product>> GetByIdsAsync(
             IReadOnlyCollection<Guid> ids,

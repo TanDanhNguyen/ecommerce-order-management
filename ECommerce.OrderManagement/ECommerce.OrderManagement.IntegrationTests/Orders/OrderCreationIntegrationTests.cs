@@ -1,5 +1,6 @@
 ﻿using ECommerce.OrderManagement.Application.Authentication.Interfaces;
 using ECommerce.OrderManagement.Application.Exceptions;
+using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Orders;
 using ECommerce.OrderManagement.Application.Requests;
 using ECommerce.OrderManagement.Domain.Entities;
@@ -52,11 +53,14 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
                 .Setup(x => x.UserId)
                 .Returns(userId);
 
+            var stockMovementRepository = new Mock<IStockMovementRepository>();
+
             var service = new CreateOrderService(
                 productRepository,
                 orderRepository,
                 transaction,
-                currentUserService.Object);
+                currentUserService.Object,
+                stockMovementRepository.Object);
 
             var request = new CreateOrderRequest(
                 new[]

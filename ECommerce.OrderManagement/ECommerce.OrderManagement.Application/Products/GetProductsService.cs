@@ -17,11 +17,14 @@ namespace ECommerce.OrderManagement.Application.Products
         {
             _productRepository = productRepository;
         }
-
         public async Task<ProductPagedResult<ProductDto>> GetPagedAsync(
-        int pageNumber,
-        int pageSize,
-        CancellationToken cancellationToken)
+            int pageNumber,
+            int pageSize,
+            string? search,
+            bool? isActive,
+            string? sortBy,
+            bool sortDescending,
+            CancellationToken cancellationToken)
         {
             if (pageNumber < 1)
                 throw new ArgumentOutOfRangeException(
@@ -33,10 +36,35 @@ namespace ECommerce.OrderManagement.Application.Products
                     nameof(pageSize),
                     "Page size must be between 1 and 100.");
 
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                var normalizedSortBy = sortBy.Trim();
+
+                var allowedSortFields = new[]
+                {
+                    "name",
+                    "price",
+                    "createdAtUtc"
+                };
+
+                if (!allowedSortFields.Contains(
+                    normalizedSortBy,
+                    StringComparer.OrdinalIgnoreCase))
+                {
+                    throw new ArgumentException(
+                        "sortBy must be one of: name, price, createdAtUtc.",
+                        nameof(sortBy));
+                }
+            }
+
             var (products, totalCount) =
                 await _productRepository.GetPagedAsync(
                     pageNumber,
                     pageSize,
+                    search,
+                    isActive,
+                    sortBy,
+                    sortDescending,
                     cancellationToken);
 
             var items = products
@@ -56,5 +84,6 @@ namespace ECommerce.OrderManagement.Application.Products
                 pageSize,
                 totalCount);
         }
+
     }
 }

@@ -35,7 +35,6 @@ namespace ECommerce.OrderManagement.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<Guid>("UserId")
-                        .IsRequired()
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -119,12 +118,37 @@ namespace ECommerce.OrderManagement.Infrastructure.Persistence.Migrations
                     b.HasIndex("Sku")
                         .IsUnique();
 
-                    b.ToTable("Products", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Products_Price", "[Price] > 0");
+                    b.ToTable("Products", (string)null);
+                });
 
-                            t.HasCheckConstraint("CK_Products_Stock", "[Stock] >= 0");
-                        });
+            modelBuilder.Entity("ECommerce.OrderManagement.Domain.Entities.StockMovement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StockAfter")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "CreatedAtUtc");
+
+                    b.ToTable("StockMovements", (string)null);
                 });
 
             modelBuilder.Entity("ECommerce.OrderManagement.Domain.Entities.OrderItem", b =>
@@ -133,6 +157,15 @@ namespace ECommerce.OrderManagement.Infrastructure.Persistence.Migrations
                         .WithMany("Items")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("ECommerce.OrderManagement.Domain.Entities.StockMovement", b =>
+                {
+                    b.HasOne("ECommerce.OrderManagement.Domain.Entities.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ECommerce.OrderManagement.Domain.Entities.Order", b =>

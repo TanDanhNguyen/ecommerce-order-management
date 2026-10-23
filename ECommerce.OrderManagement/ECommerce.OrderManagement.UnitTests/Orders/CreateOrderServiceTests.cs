@@ -56,11 +56,14 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
                 .Setup(x => x.UserId)
                 .Returns(userId);
 
+            var stockMovementRepository = new Mock<IStockMovementRepository>();
+
             var service = new CreateOrderService(
                 productRepository.Object,
                 orderRepository.Object,
                 transaction.Object,
-                currentUserService.Object);
+                currentUserService.Object,
+                stockMovementRepository.Object);
 
             var request = new CreateOrderRequest(
                 new[]
@@ -103,11 +106,14 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
                 .Setup(x => x.UserId)
                 .Returns(userId);
 
+            var stockMovementRepository = new Mock<IStockMovementRepository>();
+
             var service = new CreateOrderService(
                 productRepository.Object,
                 orderRepository.Object,
                 transaction.Object,
-                currentUserService.Object);
+                currentUserService.Object,
+                stockMovementRepository.Object);
 
             var request = new CreateOrderRequest(
                 new[]
@@ -143,11 +149,14 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
                 .Setup(x => x.UserId)
                 .Returns(userId);
 
+            var stockMovementRepository = new Mock<IStockMovementRepository>();
+
             var service = new CreateOrderService(
                 productRepository.Object,
                 orderRepository.Object,
                 transaction.Object,
-                currentUserService.Object);
+                currentUserService.Object,
+                stockMovementRepository.Object);
 
             var request = new CreateOrderRequest(
                 new[]
@@ -178,11 +187,15 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
                 .Setup(x => x.UserId)
                 .Returns(userId);
 
+            var stockMovementRepository =
+                new Mock<IStockMovementRepository>();
+
             var service = new CreateOrderService(
                 productRepository.Object,
                 orderRepository.Object,
                 transaction.Object,
-                currentUserService.Object);
+                currentUserService.Object,
+                stockMovementRepository.Object);
 
             var request = new CreateOrderRequest(
                 Array.Empty<CreateOrderItemRequest>());
@@ -215,11 +228,15 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
                 .Setup(x => x.UserId)
                 .Returns(userId);
 
+            var stockMovementRepository =
+               new Mock<IStockMovementRepository>();
+
             var service = new CreateOrderService(
                 productRepository.Object,
                 orderRepository.Object,
                 transaction.Object,
-                currentUserService.Object);
+                currentUserService.Object,
+                stockMovementRepository.Object);
 
             var request = new CreateOrderRequest(
                 new[]
@@ -245,13 +262,14 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
             currentUserService
                 .Setup(x => x.UserId)
                 .Returns(userId);
-
+            var stockMovementRepository = new Mock<IStockMovementRepository>();
             // Arrange
             var service = new CreateOrderService(
                 CreateProductRepository().Object,
                 new Mock<IOrderRepository>().Object,
                 new Mock<IOrderTransaction>().Object,
-                currentUserService.Object);
+                currentUserService.Object,
+                stockMovementRepository.Object);
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>(

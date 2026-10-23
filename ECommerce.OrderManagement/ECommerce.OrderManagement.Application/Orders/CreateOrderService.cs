@@ -12,17 +12,20 @@ namespace ECommerce.OrderManagement.Application.Orders
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderTransaction _orderTransaction;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IStockMovementRepository _stockMovementRepository;
 
         public CreateOrderService(
             IProductRepository productRepository,
             IOrderRepository orderRepository,
             IOrderTransaction orderTransaction,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IStockMovementRepository stockMovementRepository)
         {
             _productRepository = productRepository;
             _orderRepository = orderRepository;
             _orderTransaction = orderTransaction;
             _currentUserService = currentUserService;
+            _stockMovementRepository = stockMovementRepository;
         }
 
         public async Task<Order> CreateAsync(
@@ -100,6 +103,16 @@ namespace ECommerce.OrderManagement.Application.Orders
 
                         order.AddItem(orderItem);
                         product.DecreaseStock(quantity);
+
+                        var stockMovement = new StockMovement(
+                            product.Id,
+                            -quantity,
+                            product.Stock,
+                            "Order");
+
+                        await _stockMovementRepository.AddAsync(
+                            stockMovement,
+                            ct);
                     }
 
                     await _orderRepository.AddAsync(order, ct);

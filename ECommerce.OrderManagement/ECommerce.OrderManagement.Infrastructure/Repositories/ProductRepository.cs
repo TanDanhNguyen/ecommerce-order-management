@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Exceptions;
+using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Domain.Entities;
 using ECommerce.OrderManagement.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,6 @@ namespace ECommerce.OrderManagement.Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
-
         public async Task<Product?> GetByIdAsync(
             Guid id,
             CancellationToken cancellationToken)
@@ -43,15 +43,56 @@ namespace ECommerce.OrderManagement.Infrastructure.Repositories
         public async Task<(IReadOnlyList<Product> Items, int TotalCount)> GetPagedAsync(
             int pageNumber,
             int pageSize,
+            string? search,
+            bool? isActive,
+            string? sortBy,
+            bool sortDescending,
             CancellationToken cancellationToken)
         {
             var query = _dbContext.Products
                 .AsNoTracking()
-                .OrderBy(p => p.CreatedAtUtc)
-                .ThenBy(p => p.Id);
+                .AsQueryable();
 
+            // 1. Search by product name or SKU
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var keyword = search.Trim();
+
+                query = query.Where(p =>
+                    p.Name.Contains(keyword) ||
+                    p.Sku.Contains(keyword));
+            }
+
+            // 2. Filter by active status
+            if (isActive.HasValue)
+            {
+                query = query.Where(p => p.IsActive == isActive.Value);
+            }
+
+            // 3. Count filtered products before pagination
             var totalCount = await query.CountAsync(cancellationToken);
 
+            // 4. Apply sorting using allowed fields only
+            var normalizedSortBy = sortBy?.Trim().ToLowerInvariant();
+
+            query = normalizedSortBy switch
+            {
+                "name" => sortDescending
+                    ? query.OrderByDescending(p => p.Name).ThenBy(p => p.Id)
+                    : query.OrderBy(p => p.Name).ThenBy(p => p.Id),
+
+                "price" => sortDescending
+                    ? query.OrderByDescending(p => p.Price).ThenBy(p => p.Id)
+                    : query.OrderBy(p => p.Price).ThenBy(p => p.Id),
+
+                "createdatutc" => sortDescending
+                    ? query.OrderByDescending(p => p.CreatedAtUtc).ThenBy(p => p.Id)
+                    : query.OrderBy(p => p.CreatedAtUtc).ThenBy(p => p.Id),
+
+                _ => query.OrderBy(p => p.CreatedAtUtc).ThenBy(p => p.Id)
+            };
+
+            // 5. Apply pagination after sorting
             var items = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -76,14 +117,17 @@ namespace ECommerce.OrderManagement.Infrastructure.Repositories
 
             return await query.AnyAsync(cancellationToken);
         }
-
         public async Task UpdateAsync(
-            Product product,
             CancellationToken cancellationToken)
         {
-            _dbContext.Products.Update(product);
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw new ProductConcurrencyException();
+            }
         }
 
         public async Task<IReadOnlyList<Product>> GetByIdsAsync(
@@ -99,6 +143,5 @@ namespace ECommerce.OrderManagement.Infrastructure.Repositories
                 .Where(p => ids.Contains(p.Id))
                 .ToListAsync(cancellationToken);
         }
-
     }
 }

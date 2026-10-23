@@ -12,7 +12,6 @@ namespace ECommerce.OrderManagement.Application.Products
         {
             _productRepository = productRepository;
         }
-
         public async Task<bool> UpdateAsync(
             Guid id,
             string name,
@@ -28,6 +27,10 @@ namespace ECommerce.OrderManagement.Application.Products
             if (product is null)
                 return false;
 
+            if (!product.IsActive)
+                throw new InvalidOperationException(
+                    $"Product '{product.Name}' is inactive and cannot be updated.");
+
             var normalizedSku = sku?.Trim() ?? string.Empty;
 
             var skuExists = await _productRepository.ExistsBySkuAsync(
@@ -42,11 +45,9 @@ namespace ECommerce.OrderManagement.Application.Products
 
             product.UpdateDetails(name, normalizedSku);
             product.UpdatePrice(price);
-
             product.SetStock(stock);
 
             await _productRepository.UpdateAsync(
-                product,
                 cancellationToken);
 
             return true;

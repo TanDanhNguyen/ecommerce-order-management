@@ -54,6 +54,7 @@ namespace ECommerce.OrderManagement.Infrastructure
 
             services.AddScoped<IUserIdentityService, IdentityUserService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
+            services.AddScoped<IStockMovementRepository, StockMovementRepository>();
 
             return services;
         }

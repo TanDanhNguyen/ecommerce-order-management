@@ -39,6 +39,9 @@ namespace ECommerce.OrderManagement.API.Middleware
                 UserAlreadyExistsException =>
                     StatusCodes.Status409Conflict,
 
+                ProductConcurrencyException =>
+                StatusCodes.Status409Conflict,
+
                 UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
 
                 ArgumentException =>

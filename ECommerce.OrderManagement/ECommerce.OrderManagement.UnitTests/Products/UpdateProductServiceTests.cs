@@ -43,7 +43,6 @@ namespace ECommerce.OrderManagement.UnitTests.Products
 
             _repositoryMock
                 .Setup(x => x.UpdateAsync(
-                    It.IsAny<Product>(),
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
@@ -65,7 +64,6 @@ namespace ECommerce.OrderManagement.UnitTests.Products
 
             _repositoryMock.Verify(
                 x => x.UpdateAsync(
-                    product,
                     It.IsAny<CancellationToken>()),
                 Times.Once);
         }
@@ -103,7 +101,6 @@ namespace ECommerce.OrderManagement.UnitTests.Products
 
             _repositoryMock.Verify(
                 x => x.UpdateAsync(
-                    It.IsAny<Product>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never);
         }
@@ -140,7 +137,6 @@ namespace ECommerce.OrderManagement.UnitTests.Products
             // Assert
             _repositoryMock.Verify(
                 x => x.UpdateAsync(
-                    It.IsAny<Product>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never);
         }
@@ -177,7 +173,6 @@ namespace ECommerce.OrderManagement.UnitTests.Products
             // Assert
             _repositoryMock.Verify(
                 x => x.UpdateAsync(
-                    It.IsAny<Product>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never);
         }
@@ -214,7 +209,6 @@ namespace ECommerce.OrderManagement.UnitTests.Products
             // Assert
             _repositoryMock.Verify(
                 x => x.UpdateAsync(
-                    It.IsAny<Product>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never);
         }
