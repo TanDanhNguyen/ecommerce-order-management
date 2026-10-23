@@ -41,5 +41,25 @@ namespace ECommerce.OrderManagement.Infrastructure.Authentication
                 user.Id,
                 result.Errors.Select(error => error.Description).ToArray());
         }
+
+        public async Task<(bool Succeeded, Guid UserId, string Email)>ValidateCredentialsAsync(
+            string email,
+            string password,
+            CancellationToken cancellationToken)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user is null)
+                return (false, Guid.Empty, string.Empty);
+
+            var passwordValid = await _userManager.CheckPasswordAsync(
+                user,
+                password);
+
+            if (!passwordValid)
+                return (false, Guid.Empty, string.Empty);
+
+            return (true, user.Id, user.Email ?? string.Empty);
+        }
     }
 }

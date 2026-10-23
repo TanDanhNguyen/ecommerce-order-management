@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Exceptions;
+﻿using ECommerce.OrderManagement.Application.Authentication.Interfaces;
+using ECommerce.OrderManagement.Application.Exceptions;
 using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Orders;
 using ECommerce.OrderManagement.Application.Requests;
@@ -48,10 +49,18 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
                     Func<CancellationToken, Task> operation,
                     CancellationToken ct) => operation(ct));
 
+            var userId = Guid.NewGuid();
+
+            var currentUserService = new Mock<ICurrentUserService>();
+            currentUserService
+                .Setup(x => x.UserId)
+                .Returns(userId);
+
             var service = new CreateOrderService(
                 productRepository.Object,
                 orderRepository.Object,
-                transaction.Object);
+                transaction.Object,
+                currentUserService.Object);
 
             var request = new CreateOrderRequest(
                 new[]
@@ -87,10 +96,18 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
             var orderRepository = new Mock<IOrderRepository>();
             var transaction = new Mock<IOrderTransaction>();
 
+            var userId = Guid.NewGuid();
+
+            var currentUserService = new Mock<ICurrentUserService>();
+            currentUserService
+                .Setup(x => x.UserId)
+                .Returns(userId);
+
             var service = new CreateOrderService(
                 productRepository.Object,
                 orderRepository.Object,
-                transaction.Object);
+                transaction.Object,
+                currentUserService.Object);
 
             var request = new CreateOrderRequest(
                 new[]
@@ -119,10 +136,18 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
             var orderRepository = new Mock<IOrderRepository>();
             var transaction = new Mock<IOrderTransaction>();
 
+            var userId = Guid.NewGuid();
+
+            var currentUserService = new Mock<ICurrentUserService>();
+            currentUserService
+                .Setup(x => x.UserId)
+                .Returns(userId);
+
             var service = new CreateOrderService(
                 productRepository.Object,
                 orderRepository.Object,
-                transaction.Object);
+                transaction.Object,
+                currentUserService.Object);
 
             var request = new CreateOrderRequest(
                 new[]
@@ -146,10 +171,18 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
             var orderRepository = new Mock<IOrderRepository>();
             var transaction = new Mock<IOrderTransaction>();
 
+            var userId = Guid.NewGuid();
+
+            var currentUserService = new Mock<ICurrentUserService>();
+            currentUserService
+                .Setup(x => x.UserId)
+                .Returns(userId);
+
             var service = new CreateOrderService(
                 productRepository.Object,
                 orderRepository.Object,
-                transaction.Object);
+                transaction.Object,
+                currentUserService.Object);
 
             var request = new CreateOrderRequest(
                 Array.Empty<CreateOrderItemRequest>());
@@ -175,10 +208,18 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
             var orderRepository = new Mock<IOrderRepository>();
             var transaction = new Mock<IOrderTransaction>();
 
+            var userId = Guid.NewGuid();
+
+            var currentUserService = new Mock<ICurrentUserService>();
+            currentUserService
+                .Setup(x => x.UserId)
+                .Returns(userId);
+
             var service = new CreateOrderService(
                 productRepository.Object,
                 orderRepository.Object,
-                transaction.Object);
+                transaction.Object,
+                currentUserService.Object);
 
             var request = new CreateOrderRequest(
                 new[]
@@ -196,11 +237,21 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
         [Fact]
         public async Task CreateAsync_NullRequest_ThrowsArgumentNullException()
         {
+
+
+            var userId = Guid.NewGuid();
+
+            var currentUserService = new Mock<ICurrentUserService>();
+            currentUserService
+                .Setup(x => x.UserId)
+                .Returns(userId);
+
             // Arrange
             var service = new CreateOrderService(
                 CreateProductRepository().Object,
                 new Mock<IOrderRepository>().Object,
-                new Mock<IOrderTransaction>().Object);
+                new Mock<IOrderTransaction>().Object,
+                currentUserService.Object);
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>(

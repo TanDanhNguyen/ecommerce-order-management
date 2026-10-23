@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace ECommerce.OrderManagement.IntegrationTests.Orders
 {
+    [Collection("Integration Tests")]
     public class ProductConcurrencyIntegrationTests
     {
         [Fact]
@@ -33,7 +34,11 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
             await using (var setupContext = new ECommerceDbContext(options))
             {
                 setupContext.OrderItems.RemoveRange(setupContext.OrderItems);
+                await setupContext.SaveChangesAsync();
+
                 setupContext.Orders.RemoveRange(setupContext.Orders);
+                await setupContext.SaveChangesAsync();
+
                 setupContext.Products.RemoveRange(setupContext.Products);
                 await setupContext.SaveChangesAsync();
 
@@ -44,7 +49,17 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
                     10);
 
                 setupContext.Products.Add(product);
-                await setupContext.SaveChangesAsync();
+                try
+                {
+                    await setupContext.SaveChangesAsync();
+                }
+                catch (DbUpdateException ex)
+                {
+                    throw new Exception(
+                        $"Failed to insert Product. " +
+                        $"Inner exception: {ex.InnerException?.Message}",
+                        ex);
+                }
 
                 productId = product.Id;
             }

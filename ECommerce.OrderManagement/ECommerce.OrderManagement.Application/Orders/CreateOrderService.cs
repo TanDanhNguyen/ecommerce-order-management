@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Exceptions;
+﻿using ECommerce.OrderManagement.Application.Authentication.Interfaces;
+using ECommerce.OrderManagement.Application.Exceptions;
 using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Requests;
 using ECommerce.OrderManagement.Domain.Entities;
@@ -10,15 +11,18 @@ namespace ECommerce.OrderManagement.Application.Orders
         private readonly IProductRepository _productRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderTransaction _orderTransaction;
+        private readonly ICurrentUserService _currentUserService;
 
         public CreateOrderService(
             IProductRepository productRepository,
             IOrderRepository orderRepository,
-            IOrderTransaction orderTransaction  )
+            IOrderTransaction orderTransaction,
+            ICurrentUserService currentUserService)
         {
             _productRepository = productRepository;
             _orderRepository = orderRepository;
             _orderTransaction = orderTransaction;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Order> CreateAsync(
@@ -70,7 +74,15 @@ namespace ECommerce.OrderManagement.Application.Orders
                         $"Insufficient stock for product '{product.Name}'.");
             }
 
-            var order = Order.Create();
+            var userId = _currentUserService.UserId;
+
+            if (userId is null || userId == Guid.Empty)
+            {
+                throw new UnauthorizedAccessException(
+                    "An authenticated user is required to create an order.");
+            }
+
+            var order = Order.Create(userId.Value);
 
             await _orderTransaction.ExecuteAsync(
                 async ct =>

@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Authentication.Interfaces;
+using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Orders;
 using ECommerce.OrderManagement.Application.Orders.DTOs;
 using Moq;
@@ -10,17 +11,28 @@ using System.Threading.Tasks;
 
 namespace ECommerce.OrderManagement.UnitTests.Orders
 {
+
     public class GetOrdersServiceTests
     {
         private readonly Mock<IOrderRepository> _orderRepositoryMock;
+        private readonly Mock<ICurrentUserService> _currentUserServiceMock;
         private readonly GetOrdersService _service;
+        private readonly Guid _userId;
 
         public GetOrdersServiceTests()
         {
+            _userId = Guid.NewGuid();
+
             _orderRepositoryMock = new Mock<IOrderRepository>();
+            _currentUserServiceMock = new Mock<ICurrentUserService>();
+
+            _currentUserServiceMock
+                .Setup(x => x.UserId)
+                .Returns(_userId);
 
             _service = new GetOrdersService(
-                _orderRepositoryMock.Object);
+                _orderRepositoryMock.Object,
+                _currentUserServiceMock.Object);
         }
 
         [Fact]
@@ -39,6 +51,7 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
 
             _orderRepositoryMock
                 .Setup(x => x.GetPagedAsync(
+                    _userId,
                     1,
                     10,
                     It.IsAny<CancellationToken>()))
@@ -47,7 +60,9 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
 
             // Act
             var result = await _service.GetPagedAsync(
-                1, 10, CancellationToken.None);
+                1,
+                10,
+                CancellationToken.None);
 
             // Assert
             Assert.Equal(1, result.PageNumber);
@@ -57,6 +72,14 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
             Assert.Single(result.Items);
             Assert.Equal(300m, result.Items[0].TotalAmount);
             Assert.Equal(3, result.Items[0].ItemCount);
+
+            _orderRepositoryMock.Verify(
+                x => x.GetPagedAsync(
+                    _userId,
+                    1,
+                    10,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]
@@ -65,10 +88,13 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(
                 () => _service.GetPagedAsync(
-                    0, 10, CancellationToken.None));
+                    0,
+                    10,
+                    CancellationToken.None));
 
             _orderRepositoryMock.Verify(
                 x => x.GetPagedAsync(
+                    It.IsAny<Guid>(),
                     It.IsAny<int>(),
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()),
@@ -84,10 +110,37 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(
                 () => _service.GetPagedAsync(
-                    1, pageSize, CancellationToken.None));
+                    1,
+                    pageSize,
+                    CancellationToken.None));
 
             _orderRepositoryMock.Verify(
                 x => x.GetPagedAsync(
+                    It.IsAny<Guid>(),
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task GetPagedAsync_UserNotAuthenticated_ThrowsUnauthorizedAccessException()
+        {
+            // Arrange
+            _currentUserServiceMock
+                .Setup(x => x.UserId)
+                .Returns((Guid?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(
+                () => _service.GetPagedAsync(
+                    1,
+                    10,
+                    CancellationToken.None));
+
+            _orderRepositoryMock.Verify(
+                x => x.GetPagedAsync(
+                    It.IsAny<Guid>(),
                     It.IsAny<int>(),
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()),

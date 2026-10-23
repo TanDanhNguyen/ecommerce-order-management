@@ -12,6 +12,9 @@ namespace ECommerce.OrderManagement.Infrastructure.Persistence.Configurations
 
             builder.HasKey(o => o.Id);
 
+            builder.Property(o => o.UserId)
+                .IsRequired();
+
             builder.Property(o => o.CreatedAtUtc)
                 .IsRequired();
 

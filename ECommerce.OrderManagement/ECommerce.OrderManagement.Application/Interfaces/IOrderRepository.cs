@@ -14,6 +14,7 @@ namespace ECommerce.OrderManagement.Application.Interfaces
             CancellationToken cancellationToken);
 
         Task<(IReadOnlyList<OrderListItemDto> Items, int TotalCount)> GetPagedAsync(
+            Guid userId,
             int pageNumber,
             int pageSize,
             CancellationToken cancellationToken);

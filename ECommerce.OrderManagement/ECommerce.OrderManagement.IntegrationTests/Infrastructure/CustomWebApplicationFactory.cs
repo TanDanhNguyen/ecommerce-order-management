@@ -1,4 +1,6 @@
-﻿using ECommerce.OrderManagement.Infrastructure.Persistence;
+﻿using ECommerce.OrderManagement.Application.Interfaces;
+using ECommerce.OrderManagement.Infrastructure.Persistence;
+using ECommerce.OrderManagement.IntegrationTests;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +12,7 @@ using Microsoft.VisualStudio.TestPlatform.TestHost;
 
 namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
 {
-    public sealed class CustomWebApplicationFactory
+    public class CustomWebApplicationFactory
         : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)

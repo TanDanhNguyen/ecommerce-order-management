@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Authentication.Interfaces;
+using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Orders.DTOs;
 
 namespace ECommerce.OrderManagement.Application.Orders
@@ -6,10 +7,12 @@ namespace ECommerce.OrderManagement.Application.Orders
     public sealed class GetOrdersService
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetOrdersService(IOrderRepository orderRepository)
+        public GetOrdersService(IOrderRepository orderRepository, ICurrentUserService currentUserService)
         {
             _orderRepository = orderRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<PagedResult<OrderListItemDto>> GetPagedAsync(
@@ -27,11 +30,20 @@ namespace ECommerce.OrderManagement.Application.Orders
                     "Page size must be between 1 and 100.",
                     nameof(pageSize));
 
+            var currentUserId = _currentUserService.UserId;
+
+            if (currentUserId is null || currentUserId == Guid.Empty)
+            {
+                throw new UnauthorizedAccessException(
+                    "An authenticated user is required to access orders.");
+            }
+
             var (items, totalCount) =
                 await _orderRepository.GetPagedAsync(
-                pageNumber,
-                pageSize,
-                cancellationToken);
+                    currentUserId.Value,
+                    pageNumber,
+                    pageSize,
+                    cancellationToken);
 
             return new PagedResult<OrderListItemDto>(
                 items,

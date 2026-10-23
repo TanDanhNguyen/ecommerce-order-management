@@ -8,11 +8,15 @@ namespace ECommerce.OrderManagement.Application.Authentication.Interfaces
 {
     public interface IUserIdentityService
     {
-        Task<(bool Succeeded, Guid UserId, IReadOnlyList<string> Errors)>
-        CreateUserAsync(
-        string userName,
-        string email,
-        string password,
-        CancellationToken cancellationToken);
+        Task<(bool Succeeded, Guid UserId, IReadOnlyList<string> Errors)>CreateUserAsync(
+            string userName,
+            string email,
+            string password,
+            CancellationToken cancellationToken);
+
+        Task<(bool Succeeded, Guid UserId, string Email)>ValidateCredentialsAsync(
+            string email,
+            string password,
+            CancellationToken cancellationToken);
     }
 }

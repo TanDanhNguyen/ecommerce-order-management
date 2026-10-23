@@ -1,5 +1,6 @@
 ﻿using ECommerce.OrderManagement.Application.Authentication.DTOs;
 using ECommerce.OrderManagement.Application.Authentication.Interfaces;
+using ECommerce.OrderManagement.Application.Exceptions;
 
 namespace ECommerce.OrderManagement.Infrastructure.Authentication
 {
@@ -38,7 +39,19 @@ namespace ECommerce.OrderManagement.Infrastructure.Authentication
                 cancellationToken);
 
             if (!result.Succeeded)
-                throw new ArgumentException(string.Join("; ", result.Errors));
+            {
+                var errors = string.Join("; ", result.Errors);
+
+                var isDuplicate = result.Errors.Any(error =>
+                    error.Contains("already taken", StringComparison.OrdinalIgnoreCase) ||
+                    error.Contains("DuplicateUserName", StringComparison.OrdinalIgnoreCase) ||
+                    error.Contains("DuplicateEmail", StringComparison.OrdinalIgnoreCase));
+
+                if (isDuplicate)
+                    throw new UserAlreadyExistsException(errors);
+
+                throw new ArgumentException(errors);
+            }
 
             return new RegisterResponse(
                 result.UserId,

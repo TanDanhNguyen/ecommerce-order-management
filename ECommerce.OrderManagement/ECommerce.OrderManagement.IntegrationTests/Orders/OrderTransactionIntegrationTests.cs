@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace ECommerce.OrderManagement.IntegrationTests.Orders
 {
+    [Collection("Integration Tests")]
     public class OrderTransactionIntegrationTests
     {
         [Fact]
@@ -36,8 +37,8 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
 
             var productId = product.Id;
             var originalStock = product.Stock;
-
-            var order = Order.Create();
+            var userId = Guid.NewGuid();
+            var order = Order.Create(userId);
 
             order.AddItem(new OrderItem(
                 product.Id,

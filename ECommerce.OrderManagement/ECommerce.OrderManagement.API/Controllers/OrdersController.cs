@@ -1,9 +1,11 @@
 ﻿using ECommerce.OrderManagement.Application.Orders;
 using ECommerce.OrderManagement.Application.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.OrderManagement.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public sealed class OrdersController : ControllerBase
@@ -55,15 +57,22 @@ namespace ECommerce.OrderManagement.API.Controllers
 
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(
-             Guid id,
-             CancellationToken cancellationToken)
+              Guid id,
+              CancellationToken cancellationToken)
         {
             var order = await _getOrderByIdService.GetByIdAsync(
                 id,
                 cancellationToken);
 
             if (order is null)
-                return NotFound();
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "Not Found",
+                    Instance = HttpContext.Request.Path
+                });
+            }
 
             return Ok(order);
         }

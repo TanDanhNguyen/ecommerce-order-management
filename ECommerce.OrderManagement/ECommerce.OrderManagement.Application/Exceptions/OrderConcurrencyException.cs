@@ -9,8 +9,10 @@ namespace ECommerce.OrderManagement.Application.Exceptions
     public sealed class OrderConcurrencyException : Exception
     {
         public OrderConcurrencyException()
-            : base("The order could not be created because product stock was updated by another request. Please try again.")
+            : base(
+                "The operation could not be completed because the data was modified by another request. Please try again.")
         {
         }
     }
 }
+    

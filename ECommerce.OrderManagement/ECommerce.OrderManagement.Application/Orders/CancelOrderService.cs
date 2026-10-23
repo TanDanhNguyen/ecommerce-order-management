@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Authentication.Interfaces;
+using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Domain.Enums;
 using System;
 using System.Collections.Generic;
@@ -13,15 +14,18 @@ namespace ECommerce.OrderManagement.Application.Orders
         private readonly IOrderRepository _orderRepository;
         private readonly IProductRepository _productRepository;
         private readonly IOrderTransaction _orderTransaction;
+        private readonly ICurrentUserService _currentUserService;
 
         public CancelOrderService(
             IOrderRepository orderRepository,
             IProductRepository productRepository,
-            IOrderTransaction orderTransaction)
+            IOrderTransaction orderTransaction,
+            ICurrentUserService currentUserService)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
             _orderTransaction = orderTransaction;
+            _currentUserService = currentUserService;
         }
 
         public async Task CancelAsync(
@@ -40,6 +44,19 @@ namespace ECommerce.OrderManagement.Application.Orders
                 cancellationToken);
 
             if (order is null)
+            {
+                throw new KeyNotFoundException("Order not found.");
+            }
+
+            var currentUserId = _currentUserService.UserId;
+
+            if (currentUserId is null || currentUserId == Guid.Empty)
+            {
+                throw new UnauthorizedAccessException(
+                    "An authenticated user is required to cancel an order.");
+            }
+
+            if (order.UserId != currentUserId.Value)
             {
                 throw new KeyNotFoundException("Order not found.");
             }

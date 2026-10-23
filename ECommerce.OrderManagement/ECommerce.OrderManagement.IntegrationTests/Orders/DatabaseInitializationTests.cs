@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace ECommerce.OrderManagement.IntegrationTests.Orders
 {
+    [Collection("Integration Tests")]
     public class DatabaseInitializationTests
     {
 

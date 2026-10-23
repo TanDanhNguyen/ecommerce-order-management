@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Exceptions;
+﻿using ECommerce.OrderManagement.Application.Authentication.Interfaces;
+using ECommerce.OrderManagement.Application.Exceptions;
 using ECommerce.OrderManagement.Application.Orders;
 using ECommerce.OrderManagement.Application.Requests;
 using ECommerce.OrderManagement.Domain.Entities;
@@ -6,9 +7,11 @@ using ECommerce.OrderManagement.Infrastructure.Persistence;
 using ECommerce.OrderManagement.Infrastructure.Repositories;
 using ECommerce.OrderManagement.IntegrationTests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace ECommerce.OrderManagement.IntegrationTests.Orders
 {
+    [Collection("Integration Tests")]
     public class OrderCreationIntegrationTests
     {
         [Fact]
@@ -42,10 +45,18 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
                 dbContext,
                 dbContext);
 
+            var userId = Guid.NewGuid();
+
+            var currentUserService = new Mock<ICurrentUserService>();
+            currentUserService
+                .Setup(x => x.UserId)
+                .Returns(userId);
+
             var service = new CreateOrderService(
                 productRepository,
                 orderRepository,
-                transaction);
+                transaction,
+                currentUserService.Object);
 
             var request = new CreateOrderRequest(
                 new[]

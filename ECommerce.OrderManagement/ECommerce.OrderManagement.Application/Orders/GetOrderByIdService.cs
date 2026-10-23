@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Authentication.Interfaces;
+using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Orders.DTOs;
 using System;
 using System.Collections.Generic;
@@ -11,10 +12,12 @@ namespace ECommerce.OrderManagement.Application.Orders
     public sealed class GetOrderByIdService
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetOrderByIdService(IOrderRepository orderRepository)
+        public GetOrderByIdService(IOrderRepository orderRepository, ICurrentUserService currentUserService)
         {
             _orderRepository = orderRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<OrderDto?> GetByIdAsync(
@@ -31,6 +34,15 @@ namespace ECommerce.OrderManagement.Application.Orders
                 cancellationToken);
 
             if (order is null)
+                return null;
+
+            var currentUserId = _currentUserService.UserId;
+
+            if (currentUserId is null || currentUserId == Guid.Empty)
+                throw new UnauthorizedAccessException(
+                    "An authenticated user is required to access this order.");
+
+            if (order.UserId != currentUserId.Value)
                 return null;
 
             var items = order.Items

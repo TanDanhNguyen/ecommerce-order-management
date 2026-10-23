@@ -13,6 +13,8 @@ namespace ECommerce.OrderManagement.Domain.Entities
 
         public Guid Id { get; private set; }
 
+        public Guid UserId { get; private set; }
+
         public DateTime CreatedAtUtc { get; private set; }
 
         public OrderStatus Status { get; private set; }
@@ -25,11 +27,17 @@ namespace ECommerce.OrderManagement.Domain.Entities
         {
         }
 
-        public static Order Create()
+        public static Order Create(Guid userId)
         {
+            if (userId == Guid.Empty)
+                throw new ArgumentException(
+                    "UserId is required.",
+                    nameof(userId));
+
             return new Order
             {
                 Id = Guid.NewGuid(),
+                UserId = userId,
                 CreatedAtUtc = DateTime.UtcNow,
                 Status = OrderStatus.Pending
             };

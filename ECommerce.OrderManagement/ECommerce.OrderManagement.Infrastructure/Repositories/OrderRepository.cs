@@ -40,16 +40,17 @@ namespace ECommerce.OrderManagement.Infrastructure.Repositories
                     cancellationToken);
         }
 
-
         public async Task<(
             IReadOnlyList<OrderListItemDto> Items,
             int TotalCount)> GetPagedAsync(
+                Guid userId,
                 int pageNumber,
                 int pageSize,
                 CancellationToken cancellationToken)
         {
             var query = _dbContext.Orders
                 .AsNoTracking()
+                .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.CreatedAtUtc)
                 .ThenByDescending(o => o.Id);
 
@@ -68,6 +69,5 @@ namespace ECommerce.OrderManagement.Infrastructure.Repositories
 
             return (items, totalCount);
         }
-
     }
 }

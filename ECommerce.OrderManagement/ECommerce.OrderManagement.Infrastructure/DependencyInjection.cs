@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Authentication.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Authentication;
+using ECommerce.OrderManagement.Application.Authentication.Interfaces;
 using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Infrastructure.Authentication;
 using ECommerce.OrderManagement.Infrastructure.Identity;
@@ -52,6 +53,7 @@ namespace ECommerce.OrderManagement.Infrastructure
                     sp => sp.GetRequiredService<ECommerceDbContext>());
 
             services.AddScoped<IUserIdentityService, IdentityUserService>();
+            services.AddScoped<IJwtTokenService, JwtTokenService>();
 
             return services;
         }

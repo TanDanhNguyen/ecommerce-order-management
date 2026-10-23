@@ -34,6 +34,10 @@ namespace ECommerce.OrderManagement.Infrastructure.Persistence.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("UserId")
+                        .IsRequired()
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.ToTable("Orders", (string)null);

@@ -14,8 +14,6 @@ namespace ECommerce.OrderManagement.API.Middleware
             _logger = logger;
         }
 
-
-
         public async ValueTask<bool> TryHandleAsync(
             HttpContext httpContext,
             Exception exception,
@@ -38,10 +36,14 @@ namespace ECommerce.OrderManagement.API.Middleware
                 InvalidOperationException =>
                     StatusCodes.Status409Conflict,
 
+                UserAlreadyExistsException =>
+                    StatusCodes.Status409Conflict,
+
+                UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+
                 ArgumentException =>
                     StatusCodes.Status400BadRequest,
-
-                _ =>
+            _ =>
                     StatusCodes.Status500InternalServerError
             };
 
@@ -55,6 +57,7 @@ namespace ECommerce.OrderManagement.API.Middleware
             var title = statusCode switch
             {
                 StatusCodes.Status400BadRequest => "Bad Request",
+                StatusCodes.Status401Unauthorized => "Unauthorized",
                 StatusCodes.Status404NotFound => "Not Found",
                 StatusCodes.Status409Conflict => "Conflict",
                 _ => "Internal Server Error"
@@ -81,7 +84,5 @@ namespace ECommerce.OrderManagement.API.Middleware
 
             return true;
         }
-
-
     }
 }
