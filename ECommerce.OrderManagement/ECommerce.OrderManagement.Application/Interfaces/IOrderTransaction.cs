@@ -6,10 +6,16 @@ using System.Threading.Tasks;
 
 namespace ECommerce.OrderManagement.Application.Interfaces
 {
+
     public interface IOrderTransaction
     {
         Task ExecuteAsync(
             Func<CancellationToken, Task> operation,
             CancellationToken cancellationToken);
+
+        Task<T> ExecuteAsync<T>(
+            Func<CancellationToken, Task<T>> operation,
+            CancellationToken cancellationToken);
     }
+
 }

@@ -2,6 +2,7 @@
 using ECommerce.OrderManagement.Application.Authentication.Interfaces;
 using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Infrastructure.Authentication;
+using ECommerce.OrderManagement.Infrastructure.BackgroundServices;
 using ECommerce.OrderManagement.Infrastructure.Identity;
 using ECommerce.OrderManagement.Infrastructure.Persistence;
 using ECommerce.OrderManagement.Infrastructure.Repositories;
@@ -55,7 +56,9 @@ namespace ECommerce.OrderManagement.Infrastructure
             services.AddScoped<IUserIdentityService, IdentityUserService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IStockMovementRepository, StockMovementRepository>();
-
+            services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
+            services.AddHostedService<IdempotencyCleanupService>();
+            services.AddScoped<IIdempotencyCleanup, IdempotencyCleanup>();
             return services;
         }
     }

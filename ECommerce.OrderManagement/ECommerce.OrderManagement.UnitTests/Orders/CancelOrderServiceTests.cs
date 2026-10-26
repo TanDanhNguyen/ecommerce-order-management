@@ -18,6 +18,7 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
         private readonly Mock<IProductRepository> _productRepositoryMock = new();
         private readonly Mock<IOrderTransaction> _transactionMock = new();
         private readonly Mock<ICurrentUserService> _currentUser = new();
+        private readonly Mock<IStockMovementRepository> _stockMovementRepositoryMock = new();
 
         private CancelOrderService CreateService()
         {
@@ -26,7 +27,8 @@ namespace ECommerce.OrderManagement.UnitTests.Orders
                 _orderRepositoryMock.Object,
                 _productRepositoryMock.Object,
                 _transactionMock.Object,
-                _currentUser.Object);
+                _currentUser.Object,
+                _stockMovementRepositoryMock.Object);
         }
 
         [Fact]

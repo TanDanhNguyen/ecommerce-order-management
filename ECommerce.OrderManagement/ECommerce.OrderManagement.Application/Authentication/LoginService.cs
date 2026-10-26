@@ -46,7 +46,8 @@ namespace ECommerce.OrderManagement.Application.Authentication
 
             return _jwtTokenService.CreateToken(
                 result.UserId,
-                result.Email);
+                result.Email,
+                result.Role);
         }
     }
 }

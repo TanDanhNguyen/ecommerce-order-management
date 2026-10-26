@@ -2,6 +2,7 @@
 using ECommerce.OrderManagement.Application.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ECommerce.OrderManagement.API.Controllers
 {
@@ -24,35 +25,23 @@ namespace ECommerce.OrderManagement.API.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("CreateOrderPolicy")]
         public async Task<IActionResult> Create(
             [FromBody] CreateOrderRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string idempotencyKey,
             CancellationToken cancellationToken)
         {
-            var order = await _createOrderService.CreateAsync(
+            var result = await _createOrderService.CreateAsync(
                 request,
+                idempotencyKey,
                 cancellationToken);
 
-            var response = new
+            return new ContentResult
             {
-                order.Id,
-                order.Status,
-                order.CreatedAtUtc,
-                order.TotalAmount,
-                Items = order.Items.Select(item => new
-                {
-                    item.ProductId,
-                    item.ProductName,
-                    item.ProductSku,
-                    item.UnitPrice,
-                    item.Quantity,
-                    item.LineTotal
-                })
+                StatusCode = result.StatusCode,
+                Content = result.ResponseBody,
+                ContentType = "application/json"
             };
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = order.Id },
-                response);
         }
 
         [HttpGet("{id:guid}")]
@@ -91,6 +80,7 @@ namespace ECommerce.OrderManagement.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("{id:guid}/cancel")]
         public async Task<IActionResult> Cancel(
         Guid id,

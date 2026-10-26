@@ -60,7 +60,6 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
                         $"Inner exception: {ex.InnerException?.Message}",
                         ex);
                 }
-
                 productId = product.Id;
             }
 

@@ -22,8 +22,10 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
 
             var db = database.DbContext;
             db.OrderItems.RemoveRange(db.OrderItems);
+            db.StockMovements.RemoveRange(db.StockMovements);
             db.Orders.RemoveRange(db.Orders);
             db.Products.RemoveRange(db.Products);
+
             await db.SaveChangesAsync();
 
             var product = new Product(

@@ -21,7 +21,7 @@ namespace ECommerce.OrderManagement.Application.Authentication
             _configuration = configuration;
         }
 
-        public LoginResponse CreateToken(Guid userId, string email)
+        public LoginResponse CreateToken(Guid userId, string email, string role)
         {
             var jwtSection = _configuration.GetSection("Jwt");
 
@@ -62,8 +62,9 @@ namespace ECommerce.OrderManagement.Application.Authentication
             {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.Role, role)
+            };
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(signingKey));

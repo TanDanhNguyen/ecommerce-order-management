@@ -25,8 +25,10 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
             var dbContext = database.DbContext;
 
             dbContext.OrderItems.RemoveRange(dbContext.OrderItems);
+            dbContext.StockMovements.RemoveRange(dbContext.StockMovements);
             dbContext.Orders.RemoveRange(dbContext.Orders);
             dbContext.Products.RemoveRange(dbContext.Products);
+
             await dbContext.SaveChangesAsync();
 
             var product = new Product(
@@ -54,13 +56,15 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
                 .Returns(userId);
 
             var stockMovementRepository = new Mock<IStockMovementRepository>();
+            var idempotencyRepository = new Mock<IIdempotencyRepository>();
 
             var service = new CreateOrderService(
                 productRepository,
                 orderRepository,
                 transaction,
                 currentUserService.Object,
-                stockMovementRepository.Object);
+                stockMovementRepository.Object,
+                idempotencyRepository.Object);
 
             var request = new CreateOrderRequest(
                 new[]
@@ -70,9 +74,10 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
 
             // Act
             await Assert.ThrowsAsync<InsufficientStockException>(
-                () => service.CreateAsync(
-                    request,
-                    CancellationToken.None));
+               () => service.CreateAsync(
+                   request,
+                   "test-idempotency-key",
+                   CancellationToken.None));
 
             dbContext.ChangeTracker.Clear();
 

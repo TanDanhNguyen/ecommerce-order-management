@@ -14,6 +14,7 @@ namespace ECommerce.OrderManagement.API.Middleware
             _logger = logger;
         }
 
+
         public async ValueTask<bool> TryHandleAsync(
             HttpContext httpContext,
             Exception exception,
@@ -40,21 +41,36 @@ namespace ECommerce.OrderManagement.API.Middleware
                     StatusCodes.Status409Conflict,
 
                 ProductConcurrencyException =>
-                StatusCodes.Status409Conflict,
+                    StatusCodes.Status409Conflict,
 
-                UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+                UnauthorizedAccessException =>
+                    StatusCodes.Status401Unauthorized,
 
                 ArgumentException =>
                     StatusCodes.Status400BadRequest,
-            _ =>
-                    StatusCodes.Status500InternalServerError
+
+                _ => StatusCodes.Status500InternalServerError
             };
 
-            if (statusCode == StatusCodes.Status500InternalServerError)
+            var traceId = httpContext.TraceIdentifier;
+
+            if (statusCode >= StatusCodes.Status500InternalServerError)
             {
                 _logger.LogError(
                     exception,
-                    "An unexpected error occurred.");
+                    "Unhandled exception for {Method} {Path}. TraceId: {TraceId}",
+                    httpContext.Request.Method,
+                    httpContext.Request.Path,
+                    traceId);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Request failed with status {StatusCode} for {Method} {Path}. TraceId: {TraceId}",
+                    statusCode,
+                    httpContext.Request.Method,
+                    httpContext.Request.Path,
+                    traceId);
             }
 
             var title = statusCode switch
@@ -66,8 +82,7 @@ namespace ECommerce.OrderManagement.API.Middleware
                 _ => "Internal Server Error"
             };
 
-            var detail = statusCode ==
-                StatusCodes.Status500InternalServerError
+            var detail = statusCode >= StatusCodes.Status500InternalServerError
                 ? "An unexpected error occurred."
                 : exception.Message;
 
@@ -79,6 +94,8 @@ namespace ECommerce.OrderManagement.API.Middleware
                 Instance = httpContext.Request.Path
             };
 
+            problemDetails.Extensions["traceId"] = traceId;
+
             httpContext.Response.StatusCode = statusCode;
 
             await httpContext.Response.WriteAsJsonAsync(
@@ -87,5 +104,6 @@ namespace ECommerce.OrderManagement.API.Middleware
 
             return true;
         }
+
     }
 }

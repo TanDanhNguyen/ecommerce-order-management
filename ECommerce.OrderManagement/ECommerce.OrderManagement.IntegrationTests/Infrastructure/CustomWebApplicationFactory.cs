@@ -2,6 +2,8 @@
 using ECommerce.OrderManagement.Infrastructure.Identity;
 using ECommerce.OrderManagement.Infrastructure.Persistence;
 using ECommerce.OrderManagement.IntegrationTests;
+using ECommerce.OrderManagement.IntegrationTests.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +50,12 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
 
                 services.AddDbContext<ApplicationIdentityDbContext>(options =>
                     options.UseSqlServer(identityConnectionString));
+                services.AddAuthentication()
+                .AddScheme<
+                    AuthenticationSchemeOptions,
+                    TestAuthHandler>(
+                    TestAuthHandler.SchemeName,
+                    _ => { });
             });
         }
 

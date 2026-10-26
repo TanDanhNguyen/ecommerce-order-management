@@ -25,6 +25,7 @@ namespace ECommerce.OrderManagement.Application
             services.AddScoped<DeactivateProductService>();
             services.AddScoped<AdjustProductStockService>();
             services.AddScoped<GetStockMovementsService>();
+
             return services;
         }
     }

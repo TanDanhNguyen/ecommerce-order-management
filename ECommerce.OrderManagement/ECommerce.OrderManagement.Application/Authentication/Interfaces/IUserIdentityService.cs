@@ -14,9 +14,13 @@ namespace ECommerce.OrderManagement.Application.Authentication.Interfaces
             string password,
             CancellationToken cancellationToken);
 
-        Task<(bool Succeeded, Guid UserId, string Email)>ValidateCredentialsAsync(
-            string email,
-            string password,
-            CancellationToken cancellationToken);
+        Task<(
+            bool Succeeded,
+            Guid UserId,
+            string Email,
+            string Role)> ValidateCredentialsAsync(
+                string email,
+                string password,
+                CancellationToken cancellationToken);
     }
 }

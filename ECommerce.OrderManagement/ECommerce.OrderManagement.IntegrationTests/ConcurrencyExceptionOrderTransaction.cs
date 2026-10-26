@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace ECommerce.OrderManagement.IntegrationTests
 {
+
     public sealed class ConcurrencyExceptionOrderTransaction
         : IOrderTransaction
     {
@@ -17,5 +18,13 @@ namespace ECommerce.OrderManagement.IntegrationTests
         {
             throw new OrderConcurrencyException();
         }
+
+        public Task<T> ExecuteAsync<T>(
+            Func<CancellationToken, Task<T>> operation,
+            CancellationToken cancellationToken)
+        {
+            throw new OrderConcurrencyException();
+        }
     }
+
 }

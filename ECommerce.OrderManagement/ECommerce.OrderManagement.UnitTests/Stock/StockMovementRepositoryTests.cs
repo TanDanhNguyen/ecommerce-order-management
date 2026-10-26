@@ -1,5 +1,7 @@
 using ECommerce.OrderManagement.Application;
+using ECommerce.OrderManagement.Application.Exceptions;
 using ECommerce.OrderManagement.Application.Interfaces;
+using ECommerce.OrderManagement.Application.Products;
 using ECommerce.OrderManagement.Domain.Entities;
 using ECommerce.OrderManagement.Infrastructure.Persistence;
 using ECommerce.OrderManagement.Infrastructure.Repositories;
@@ -30,16 +32,33 @@ namespace ECommerce.OrderManagement.UnitTests.Repositories
                 _stockMovementRepositoryMock.Object);
         }
 
-        [Fact]
-        public async Task AddAsync_ShouldAddStockMovement()
-        {
-            
-        }
 
         [Fact]
-        public async Task GetByProductIdAsync_ShouldReturnPagedStockMovements()
+        public async Task AdjustAsync_InactiveProduct_ThrowsInactiveProductException()
         {
+            // Arrange
+            var product = new Product(
+                "Keyboard",
+                "KB-001",
+                100m,
+                10);
 
+            product.Deactivate();
+
+            _productRepositoryMock
+                .Setup(x => x.GetByIdAsync(
+                    product.Id,
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(product);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InactiveProductException>(
+                () => _service.AdjustAsync(
+                    product.Id,
+                    1,
+                    StockAdjustmentOperation.Increase,
+                    CancellationToken.None));
         }
+
     }
 }

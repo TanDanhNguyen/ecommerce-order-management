@@ -317,6 +317,13 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
                 dbContext.Orders.Add(order);
 
                 await dbContext.SaveChangesAsync();
+                var savedOrders = await dbContext.Orders
+                  .AsNoTracking()
+                  .Include(o => o.Items)
+                  .SingleOrDefaultAsync(o => o.Id == order.Id);
+
+                Console.WriteLine(
+                    $"Order exists after save: {savedOrders is not null}");
             }
 
             var originalStock = product.Stock;
@@ -333,9 +340,6 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
 
             var responseBody = await response.Content.ReadAsStringAsync();
 
-            Console.WriteLine($"Status Code: {(int)response.StatusCode}");
-            Console.WriteLine($"Response Body: {responseBody}");
-
             Assert.True(
                 response.StatusCode == HttpStatusCode.NoContent,
                 $"Expected 204 NoContent, actual {(int)response.StatusCode}. " +
@@ -351,12 +355,27 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
                 .AsNoTracking()
                 .SingleAsync(x => x.Id == order.Id);
 
+
             var savedProduct = await verifyDbContext.Products
                 .AsNoTracking()
                 .SingleAsync(x => x.Id == product.Id);
 
             Assert.Equal(OrderStatus.Cancelled, savedOrder.Status);
             Assert.Equal(originalStock + quantity, savedProduct.Stock);
+
+            var cancellationMovements = await verifyDbContext.StockMovements
+                .AsNoTracking()
+                .Where(m =>
+                    m.ProductId == product.Id &&
+                    m.Operation == "OrderCancellation")
+                .ToListAsync();
+
+            var cancellationMovement = Assert.Single(cancellationMovements);
+
+            Assert.Equal(quantity, cancellationMovement.Quantity);
+            Assert.Equal(
+                originalStock + quantity,
+                cancellationMovement.StockAfter);
         }
 
     }

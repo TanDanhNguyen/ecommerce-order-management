@@ -9,6 +9,6 @@ namespace ECommerce.OrderManagement.Application.Authentication.Interfaces
 {
     public interface IJwtTokenService
     {
-        LoginResponse CreateToken(Guid userId, string email);
+        LoginResponse CreateToken(Guid userId, string email, string role);
     }
 }

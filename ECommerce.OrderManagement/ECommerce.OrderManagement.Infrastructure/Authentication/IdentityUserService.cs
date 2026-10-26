@@ -20,8 +20,8 @@ namespace ECommerce.OrderManagement.Infrastructure.Authentication
             _userManager = userManager;
         }
 
-        public async Task<(bool Succeeded, Guid UserId, IReadOnlyList<string> Errors)>
-            CreateUserAsync(
+
+        public async Task<(bool Succeeded, Guid UserId, IReadOnlyList<string> Errors)> CreateUserAsync(
                 string userName,
                 string email,
                 string password,
@@ -36,30 +36,66 @@ namespace ECommerce.OrderManagement.Infrastructure.Authentication
 
             var result = await _userManager.CreateAsync(user, password);
 
-            return (
-                result.Succeeded,
-                user.Id,
-                result.Errors.Select(error => error.Description).ToArray());
+            if (!result.Succeeded)
+            {
+                return (
+                    false,
+                    user.Id,
+                    result.Errors.Select(error => error.Description).ToArray());
+            }
+
+            var roleResult = await _userManager.AddToRoleAsync(user, "Customer");
+
+            if (!roleResult.Succeeded)
+            {
+                // Roll back the newly created account if role assignment fails.
+                await _userManager.DeleteAsync(user);
+
+                return (
+                    false,
+                    user.Id,
+                    roleResult.Errors.Select(error => error.Description).ToArray());
+            }
+
+            return (true, user.Id, Array.Empty<string>());
         }
 
-        public async Task<(bool Succeeded, Guid UserId, string Email)>ValidateCredentialsAsync(
+
+        public async Task<(
+            bool Succeeded,
+            Guid UserId,
+            string Email,
+            string Role)> ValidateCredentialsAsync(
             string email,
             string password,
-            CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByEmailAsync(email);
 
             if (user is null)
-                return (false, Guid.Empty, string.Empty);
+                return (false, Guid.Empty, string.Empty, string.Empty);
 
             var passwordValid = await _userManager.CheckPasswordAsync(
                 user,
                 password);
 
             if (!passwordValid)
-                return (false, Guid.Empty, string.Empty);
+                return (false, Guid.Empty, string.Empty, string.Empty);
 
-            return (true, user.Id, user.Email ?? string.Empty);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            if (roles.Count == 0)
+            {
+                return (false, Guid.Empty, string.Empty, string.Empty);
+            }
+
+            var role = roles[0];
+
+            return (
+                true,
+                user.Id,
+                user.Email ?? string.Empty,
+                role);
         }
     }
 }

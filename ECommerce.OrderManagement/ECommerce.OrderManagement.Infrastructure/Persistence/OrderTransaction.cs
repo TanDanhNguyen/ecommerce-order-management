@@ -19,7 +19,6 @@ namespace ECommerce.OrderManagement.Infrastructure.Persistence
             _dbContext = dbContext;
             _unitOfWork = unitOfWork;
         }
-
         public async Task ExecuteAsync(
             Func<CancellationToken, Task> operation,
             CancellationToken cancellationToken)
@@ -37,7 +36,35 @@ namespace ECommerce.OrderManagement.Infrastructure.Persistence
             catch (DbUpdateConcurrencyException)
             {
                 await transaction.RollbackAsync(CancellationToken.None);
+                throw new OrderConcurrencyException();
+            }
+            catch
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+                throw;
+            }
+        }
 
+        public async Task<T> ExecuteAsync<T>(
+            Func<CancellationToken, Task<T>> operation,
+            CancellationToken cancellationToken)
+        {
+            await using var transaction =
+                await _dbContext.Database.BeginTransactionAsync(
+                    cancellationToken);
+
+            try
+            {
+                var result = await operation(cancellationToken);
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                return result;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
                 throw new OrderConcurrencyException();
             }
             catch

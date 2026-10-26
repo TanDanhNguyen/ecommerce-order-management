@@ -1,5 +1,6 @@
 ﻿using ECommerce.OrderManagement.Application.Authentication.Interfaces;
 using ECommerce.OrderManagement.Application.Interfaces;
+using ECommerce.OrderManagement.Domain.Entities;
 using ECommerce.OrderManagement.Domain.Enums;
 using System;
 using System.Collections.Generic;
@@ -15,17 +16,20 @@ namespace ECommerce.OrderManagement.Application.Orders
         private readonly IProductRepository _productRepository;
         private readonly IOrderTransaction _orderTransaction;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IStockMovementRepository _stockMovementRepository;
 
         public CancelOrderService(
             IOrderRepository orderRepository,
             IProductRepository productRepository,
             IOrderTransaction orderTransaction,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IStockMovementRepository stockMovementRepository)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
             _orderTransaction = orderTransaction;
             _currentUserService = currentUserService;
+            _stockMovementRepository = stockMovementRepository;
         }
 
         public async Task CancelAsync(
@@ -88,15 +92,24 @@ namespace ECommerce.OrderManagement.Application.Orders
 
             await _orderTransaction.ExecuteAsync(async ct =>
             {
-
                 foreach (var (productId, quantity) in quantitiesByProduct)
                 {
-                    productsById[productId].IncreaseStock(quantity);
+                    var product = productsById[productId];
+
+                    product.IncreaseStock(quantity);
+
+                    var stockMovement = new StockMovement(
+                        productId,
+                        quantity,
+                        product.Stock,
+                        "OrderCancellation");
+
+                    await _stockMovementRepository.AddAsync(
+                        stockMovement,
+                        ct);
                 }
 
                 order.Cancel();
-
-                await Task.CompletedTask;
             }, cancellationToken);
         }
     }

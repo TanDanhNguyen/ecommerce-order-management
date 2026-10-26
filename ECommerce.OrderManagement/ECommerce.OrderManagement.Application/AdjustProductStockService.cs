@@ -1,11 +1,7 @@
 ﻿using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Products;
 using ECommerce.OrderManagement.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ECommerce.OrderManagement.Application.Exceptions;
 
 namespace ECommerce.OrderManagement.Application
 {
@@ -40,8 +36,7 @@ namespace ECommerce.OrderManagement.Application
                 return false;
 
             if (!product.IsActive)
-                throw new InvalidOperationException(
-                    $"Product '{product.Name}' is inactive and cannot be adjusted.");
+                throw new InactiveProductException(product.Name);
 
             switch (operation)
             {
