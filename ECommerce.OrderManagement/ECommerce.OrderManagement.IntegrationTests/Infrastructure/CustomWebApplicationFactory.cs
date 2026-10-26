@@ -1,4 +1,5 @@
 ﻿using ECommerce.OrderManagement.Application.Interfaces;
+using ECommerce.OrderManagement.Infrastructure.Identity;
 using ECommerce.OrderManagement.Infrastructure.Persistence;
 using ECommerce.OrderManagement.IntegrationTests;
 using Microsoft.AspNetCore.Hosting;
@@ -17,15 +18,6 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            builder.ConfigureAppConfiguration((_, config) =>
-            {
-                config.AddJsonFile(
-                    Path.Combine(
-                        AppContext.BaseDirectory,
-                        "appsettings.json"),
-                    optional: false);
-            });
-
             builder.ConfigureServices(services =>
             {
                 var configuration = new ConfigurationBuilder()
@@ -35,13 +27,62 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
 
                 var connectionString =
                     configuration.GetConnectionString(
-                        "IntegrationTestConnection");
+                        "IntegrationTestConnection")
+                    ?? throw new InvalidOperationException(
+                        "IntegrationTestConnection is missing.");
 
-                services.RemoveAll<DbContextOptions<ECommerceDbContext>>();
+                var identityConnectionString =
+                    configuration.GetConnectionString(
+                        "IdentityIntegrationTestConnection")
+                    ?? throw new InvalidOperationException(
+                        "IdentityIntegrationTestConnection is missing.");
+
+                services.RemoveAll<
+                    DbContextOptions<ECommerceDbContext>>();
+
+                services.RemoveAll<
+                    DbContextOptions<ApplicationIdentityDbContext>>();
 
                 services.AddDbContext<ECommerceDbContext>(options =>
                     options.UseSqlServer(connectionString));
+
+                services.AddDbContext<ApplicationIdentityDbContext>(options =>
+                    options.UseSqlServer(identityConnectionString));
             });
+        }
+
+        public async Task VerifyTestDatabasesAsync()
+        {
+            using var scope = Services.CreateScope();
+
+            var dbContext = scope.ServiceProvider
+                .GetRequiredService<ECommerceDbContext>();
+
+            var identityDbContext = scope.ServiceProvider
+                .GetRequiredService<ApplicationIdentityDbContext>();
+
+            var businessDatabase =
+                dbContext.Database.GetDbConnection().Database;
+
+            var identityDatabase =
+                identityDbContext.Database.GetDbConnection().Database;
+
+            if (businessDatabase == identityDatabase)
+            {
+                throw new InvalidOperationException(
+                    "Business and Identity test databases must be separate.");
+            }
+
+            if (!businessDatabase.Contains(
+                    "IntegrationTests",
+                    StringComparison.OrdinalIgnoreCase) ||
+                !identityDatabase.Contains(
+                    "IntegrationTests",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "A DbContext is not connected to a clearly named test database.");
+            }
         }
     }
 }

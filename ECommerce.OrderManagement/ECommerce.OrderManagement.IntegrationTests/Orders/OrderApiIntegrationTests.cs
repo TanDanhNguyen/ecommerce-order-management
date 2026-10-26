@@ -187,6 +187,39 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
             Assert.Equal(originalStock, savedProduct.Stock);
         }
 
+        //private async Task<(Guid UserId, string Token)> RegisterAndLoginAsync()
+        //{
+        //    var uniqueId = Guid.NewGuid().ToString("N");
+        //    var email = $"integration-{uniqueId}@example.com";
+        //    var password = "TestPassword123!";
+
+        //    var registerRequest = new RegisterRequest(
+        //        $"integration-{uniqueId}",
+        //        email,
+        //        password);
+
+        //    var registerResponse = await _client.PostAsJsonAsync(
+        //        "/api/auth/register",
+        //        registerRequest);
+
+        //    registerResponse.EnsureSuccessStatusCode();
+
+        //    var loginRequest = new LoginRequest(email, password);
+
+        //    var loginResponse = await _client.PostAsJsonAsync(
+        //        "/api/auth/login",
+        //        loginRequest);
+
+        //    loginResponse.EnsureSuccessStatusCode();
+
+        //    var login = await loginResponse.Content
+        //        .ReadFromJsonAsync<LoginResponse>();
+
+        //    Assert.NotNull(login);
+
+        //    return (login.UserId, login.AccessToken);
+        //}
+
         private async Task<(Guid UserId, string Token)> RegisterAndLoginAsync()
         {
             var uniqueId = Guid.NewGuid().ToString("N");
@@ -202,7 +235,15 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
                 "/api/auth/register",
                 registerRequest);
 
-            registerResponse.EnsureSuccessStatusCode();
+            var registerBody = await registerResponse.Content
+                .ReadAsStringAsync();
+
+            if (!registerResponse.IsSuccessStatusCode)
+            {
+                throw new Exception(
+                    $"Register failed: {(int)registerResponse.StatusCode} " +
+                    $"{registerResponse.StatusCode}. Body: {registerBody}");
+            }
 
             var loginRequest = new LoginRequest(email, password);
 
@@ -210,7 +251,15 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
                 "/api/auth/login",
                 loginRequest);
 
-            loginResponse.EnsureSuccessStatusCode();
+            var loginBody = await loginResponse.Content
+                .ReadAsStringAsync();
+
+            if (!loginResponse.IsSuccessStatusCode)
+            {
+                throw new Exception(
+                    $"Login failed: {(int)loginResponse.StatusCode} " +
+                    $"{loginResponse.StatusCode}. Body: {loginBody}");
+            }
 
             var login = await loginResponse.Content
                 .ReadFromJsonAsync<LoginResponse>();

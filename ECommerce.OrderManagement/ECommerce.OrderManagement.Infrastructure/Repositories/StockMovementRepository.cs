@@ -28,20 +28,43 @@ namespace ECommerce.OrderManagement.Infrastructure.Repositories
         }
 
         public async Task<IReadOnlyList<StockMovement>> GetByProductIdAsync(
-         Guid productId,
-         int pageNumber,
-         int pageSize,
-         CancellationToken cancellationToken)
+            Guid productId,
+            int pageNumber,
+            int pageSize,
+            string? operation,
+            CancellationToken cancellationToken)
         {
-            return await _dbContext.StockMovements
+            var query = _dbContext.StockMovements
                 .AsNoTracking()
-                .Where(x => x.ProductId == productId)
+                .Where(x => x.ProductId == productId);
+
+            if (!string.IsNullOrWhiteSpace(operation))
+            {
+                query = query.Where(x => x.Operation == operation);
+            }
+
+            return await query
                 .OrderByDescending(x => x.CreatedAtUtc)
                 .ThenByDescending(x => x.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
         }
+        public async Task<int> CountByProductIdAsync(
+            Guid productId,
+            string? operation,
+            CancellationToken cancellationToken)
+        {
+            var query = _dbContext.StockMovements
+                .AsNoTracking()
+                .Where(x => x.ProductId == productId);
+
+            if (!string.IsNullOrWhiteSpace(operation))
+            {
+                query = query.Where(x => x.Operation == operation);
+            }
+
+            return await query.CountAsync(cancellationToken);
+        }
     }
-    
 }

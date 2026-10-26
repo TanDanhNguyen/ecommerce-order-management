@@ -1,4 +1,5 @@
-﻿using ECommerce.OrderManagement.Application.Interfaces;
+﻿using ECommerce.OrderManagement.Application.Common;
+using ECommerce.OrderManagement.Application.Interfaces;
 using ECommerce.OrderManagement.Application.Products.DTOs;
 using System;
 using System.Collections.Generic;
@@ -21,11 +22,12 @@ namespace ECommerce.OrderManagement.Application.StockMovements
             _productRepository = productRepository;
         }
 
-        public async Task<IReadOnlyList<StockMovementDto>?> ExecuteAsync(
-    Guid productId,
-    int pageNumber,
-    int pageSize,
-    CancellationToken cancellationToken)
+        public async Task<PagedResult<StockMovementDto>?> ExecuteAsync(
+            Guid productId,
+            int pageNumber,
+            int pageSize,
+            string? operation,
+            CancellationToken cancellationToken)
         {
             if (productId == Guid.Empty)
                 throw new ArgumentException("ProductId is required.");
@@ -40,6 +42,31 @@ namespace ECommerce.OrderManagement.Application.StockMovements
                     nameof(pageSize),
                     "Page size must be between 1 and 100.");
 
+            if (!string.IsNullOrWhiteSpace(operation))
+            {
+                var allowedOperations = new[]
+                {
+                    "Order",
+                    "Increase",
+                    "Decrease"
+                };
+
+                if (!allowedOperations.Contains(
+                        operation,
+                        StringComparer.OrdinalIgnoreCase))
+                {
+                    throw new ArgumentException(
+                        "Operation must be Order, Increase, or Decrease.",
+                        nameof(operation));
+                }
+
+                operation = allowedOperations.First(
+                    x => string.Equals(
+                        x,
+                        operation,
+                        StringComparison.OrdinalIgnoreCase));
+            }
+
             var product = await _productRepository.GetByIdAsync(
                 productId,
                 cancellationToken);
@@ -51,19 +78,31 @@ namespace ECommerce.OrderManagement.Application.StockMovements
                 productId,
                 pageNumber,
                 pageSize,
+                operation,
                 cancellationToken);
 
-            return movements
-                .Select(x => new StockMovementDto
-                {
-                    Id = x.Id,
-                    ProductId = x.ProductId,
-                    Quantity = x.Quantity,
-                    StockAfter = x.StockAfter,
-                    Operation = x.Operation,
-                    CreatedAtUtc = x.CreatedAtUtc
-                })
-                .ToList();
+            var totalCount = await _stockMovementRepository.CountByProductIdAsync(
+                productId,
+                operation,
+                cancellationToken);
+
+            return new PagedResult<StockMovementDto>
+            {
+                Items = movements
+                    .Select(x => new StockMovementDto
+                    {
+                        Id = x.Id,
+                        ProductId = x.ProductId,
+                        Quantity = x.Quantity,
+                        StockAfter = x.StockAfter,
+                        Operation = x.Operation,
+                        CreatedAtUtc = x.CreatedAtUtc
+                    })
+                    .ToList(),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
         }
     }
 }

@@ -168,12 +168,14 @@ namespace ECommerce.OrderManagement.API.Controllers
             Guid productId,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
+            [FromQuery] string? operation = null,
             CancellationToken cancellationToken = default)
         {
             var result = await _getStockMovementsService.ExecuteAsync(
                 productId,
                 pageNumber,
                 pageSize,
+                operation,
                 cancellationToken);
 
             if (result is null)

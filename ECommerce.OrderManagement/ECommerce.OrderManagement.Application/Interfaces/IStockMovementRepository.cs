@@ -16,6 +16,11 @@ namespace ECommerce.OrderManagement.Application.Interfaces
             Guid productId,
             int pageNumber,
             int pageSize,
+            string? operation,
+            CancellationToken cancellationToken);
+        Task<int> CountByProductIdAsync(
+            Guid productId,
+            string? operation,
             CancellationToken cancellationToken);
     }
 }
