@@ -46,10 +46,10 @@ jobs:
           exit 1
 
       - name: Restore dependencies
-        run: dotnet restore ECommerce.OrderManagement.sln
+        run: dotnet restore ECommerce.OrderManagement/ECommerce.OrderManagement.sln
 
       - name: Build solution
-        run: dotnet build ECommerce.OrderManagement.sln --configuration Release --no-restore
+        run: dotnet build ECommerce.OrderManagement/ECommerce.OrderManagement.sln --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test ECommerce.OrderManagement.sln --configuration Release --no-build
+        run: dotnet test ECommerce.OrderManagement/ECommerce.OrderManagement.sln --configuration Release --no-build
