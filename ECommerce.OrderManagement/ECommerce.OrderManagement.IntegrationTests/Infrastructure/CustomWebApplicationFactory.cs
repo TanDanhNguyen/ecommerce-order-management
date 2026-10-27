@@ -25,17 +25,18 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                 var configuration = new ConfigurationBuilder()
                     .SetBasePath(AppContext.BaseDirectory)
                     .AddJsonFile("appsettings.json", optional: false)
+                    .AddEnvironmentVariables()
                     .Build();
 
                 var connectionString =
-                    configuration.GetConnectionString(
-                        "IntegrationTestConnection")
+                    configuration["IntegrationTestConnection"]
+                    ?? configuration.GetConnectionString("IntegrationTestConnection")
                     ?? throw new InvalidOperationException(
                         "IntegrationTestConnection is missing.");
 
                 var identityConnectionString =
-                    configuration.GetConnectionString(
-                        "IdentityIntegrationTestConnection")
+                    configuration["IdentityIntegrationTestConnection"]
+                    ?? configuration.GetConnectionString("IdentityIntegrationTestConnection")
                     ?? throw new InvalidOperationException(
                         "IdentityIntegrationTestConnection is missing.");
 
