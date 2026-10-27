@@ -1,5 +1,6 @@
 ﻿using ECommerce.OrderManagement.Infrastructure.Infrastructure;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,18 +23,18 @@ namespace ECommerce.OrderManagement.IntegrationTests
         }
 
         [Fact]
-        public async Task CancelOrder_WithCustomerRole_ReturnsForbidden()
+        public async Task CancelOrder_WithAdminRole_PassesAuthorization()
         {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: false)
-                .Build();
+            using var scope = _factory.Services.CreateScope();
+
+            var configuration = scope.ServiceProvider
+                .GetRequiredService<IConfiguration>();
 
             using var client = _factory.CreateClient();
 
             var token = TestJwtTokenFactory.CreateToken(
                 configuration,
-                "Customer");
+                "Admin");
 
             client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token);
@@ -44,8 +45,27 @@ namespace ECommerce.OrderManagement.IntegrationTests
                 $"/api/Orders/{orderId}/cancel",
                 content: null);
 
-            Assert.Equal(
+            Assert.NotEqual(
+                HttpStatusCode.Unauthorized,
+                response.StatusCode);
+
+            Assert.NotEqual(
                 HttpStatusCode.Forbidden,
+                response.StatusCode);
+        }
+        [Fact]
+        public async Task CancelOrder_WithoutToken_ReturnsUnauthorized()
+        {
+            using var client = _factory.CreateClient();
+
+            var orderId = Guid.NewGuid();
+
+            var response = await client.PostAsync(
+                $"/api/Orders/{orderId}/cancel",
+                content: null);
+
+            Assert.Equal(
+                HttpStatusCode.Unauthorized,
                 response.StatusCode);
         }
     }

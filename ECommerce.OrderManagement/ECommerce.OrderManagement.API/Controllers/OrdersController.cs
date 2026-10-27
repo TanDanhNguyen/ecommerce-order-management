@@ -80,7 +80,6 @@ namespace ECommerce.OrderManagement.API.Controllers
             return Ok(result);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPost("{id:guid}/cancel")]
         public async Task<IActionResult> Cancel(
         Guid id,

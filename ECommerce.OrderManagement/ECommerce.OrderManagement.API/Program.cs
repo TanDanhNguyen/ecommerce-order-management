@@ -169,24 +169,24 @@ throw new InvalidOperationException(
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
-{
-options.TokenValidationParameters =
-    new TokenValidationParameters
-{
-ValidateIssuer = true,
-ValidIssuer = issuer,
+        {
+        options.TokenValidationParameters =
+            new TokenValidationParameters
+        {
+        ValidateIssuer = true,
+        ValidIssuer = issuer,
 
-ValidateAudience = true,
-ValidAudience = audience,
+        ValidateAudience = true,
+        ValidAudience = audience,
 
-ValidateIssuerSigningKey = true,
-IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(signingKey)),
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(signingKey)),
 
-ValidateLifetime = true,
-ClockSkew = TimeSpan.FromSeconds(30)
-};
-});
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
