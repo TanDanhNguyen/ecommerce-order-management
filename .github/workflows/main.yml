@@ -70,13 +70,6 @@ jobs:
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef
 
-      - name: Run EF Core Migrations for Identity DB
-        run: |
-          dotnet ef database update \
-            --project ECommerce.OrderManagement/ECommerce.OrderManagement.Infrastructure \
-            --startup-project ECommerce.OrderManagement/ECommerce.OrderManagement.API \
-            --connection "Server=localhost,1433;Database=ECommerceIdentity_IntegrationTests;User Id=sa;Password=Ci_Test_Passw0rd!;TrustServerCertificate=True;Encrypt=False"      
-
       - name: Restore dependencies
         run: dotnet restore ECommerce.OrderManagement/ECommerce.OrderManagement.sln
 
