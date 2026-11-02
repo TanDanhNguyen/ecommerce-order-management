@@ -29,8 +29,10 @@ namespace ECommerce.OrderManagement.Infrastructure
                 options.UseSqlServer(connectionString));
 
             var identityConnectionString =
-                configuration.GetConnectionString(
-                    "IdentityIntegrationTestConnection");
+               configuration.GetConnectionString(
+                   "IdentityIntegrationTestConnection")
+               ?? throw new InvalidOperationException(
+                   "IdentityIntegrationTestConnection is missing.");
 
             services.AddDbContext<ApplicationIdentityDbContext>(options =>
                 options.UseSqlServer(

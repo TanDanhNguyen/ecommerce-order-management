@@ -17,6 +17,8 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            builder.UseEnvironment("Testing");
+
             builder.ConfigureServices(services =>
             {
                 var configuration = new ConfigurationBuilder()
@@ -26,16 +28,20 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                     .Build();
 
                 var connectionString =
-                    configuration["IntegrationTestConnection"]
-                    ?? configuration.GetConnectionString("IntegrationTestConnection")
+                    configuration.GetConnectionString(
+                        "IntegrationTestConnection")
                     ?? throw new InvalidOperationException(
                         "IntegrationTestConnection is missing.");
 
                 var identityConnectionString =
-                    configuration["IdentityIntegrationTestConnection"]
-                    ?? configuration.GetConnectionString("IdentityIntegrationTestConnection")
+                    configuration.GetConnectionString(
+                        "IdentityIntegrationTestConnection")
                     ?? throw new InvalidOperationException(
                         "IdentityIntegrationTestConnection is missing.");
+
+                // Remove existing DbContext registrations.
+                services.RemoveAll<ECommerceDbContext>();
+                services.RemoveAll<ApplicationIdentityDbContext>();
 
                 services.RemoveAll<
                     DbContextOptions<ECommerceDbContext>>();
@@ -43,18 +49,29 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                 services.RemoveAll<
                     DbContextOptions<ApplicationIdentityDbContext>>();
 
+                // Register Business database.
                 services.AddDbContext<ECommerceDbContext>(options =>
-                    options.UseSqlServer(connectionString));
+                {
+                    options.UseSqlServer(connectionString);
+                });
 
-                services.AddDbContext<ApplicationIdentityDbContext>(options =>
-                    options.UseSqlServer(identityConnectionString));
+                // Register Identity database.
+                services.AddDbContext<ApplicationIdentityDbContext>(
+                    options =>
+                    {
+                        options.UseSqlServer(
+                            identityConnectionString,
+                            sql => sql.MigrationsAssembly(
+                                typeof(ApplicationIdentityDbContext)
+                                    .Assembly.FullName));
+                    });
 
                 services.AddAuthentication()
-                .AddScheme<
-                    AuthenticationSchemeOptions,
-                    TestAuthHandler>(
-                    TestAuthHandler.SchemeName,
-                    _ => { });
+                    .AddScheme<
+                        AuthenticationSchemeOptions,
+                        TestAuthHandler>(
+                        TestAuthHandler.SchemeName,
+                        _ => { });
             });
         }
 

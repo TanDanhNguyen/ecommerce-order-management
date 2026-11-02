@@ -198,8 +198,10 @@ builder.Services.AddScoped<IOrderTransaction, OrderTransaction>();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
+
     var services = scope.ServiceProvider;
 
     var identityDbContext = services
