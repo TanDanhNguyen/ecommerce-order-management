@@ -272,7 +272,25 @@ app.MapHealthChecks(
     "/health/ready",
     new HealthCheckOptions
     {
-        Predicate = check => check.Tags.Contains("ready")
+        Predicate = check => check.Tags.Contains("ready"),
+        ResponseWriter = async (context, report) =>
+        {
+            context.Response.ContentType = "application/json";
+
+            var result = new
+            {
+                status = report.Status.ToString(),
+                checks = report.Entries.Select(entry => new
+                {
+                    name = entry.Key,
+                    status = entry.Value.Status.ToString(),
+                    description = entry.Value.Description,
+                    exception = entry.Value.Exception?.GetBaseException().Message
+                })
+            };
+
+            await context.Response.WriteAsJsonAsync(result);
+        }
     });
 
 app.Run();

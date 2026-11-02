@@ -601,15 +601,14 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
         [Fact]
         public async Task HealthReady_ReturnsHealthy_WhenDatabaseIsAvailable()
         {
-            using var client = _factory.CreateClient();
-
-            var response = await client.GetAsync("/health/ready");
-
-            response.EnsureSuccessStatusCode();
+            using var response = await _client.GetAsync("/health/ready");
 
             var content = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal("Healthy", content);
+            Assert.True(
+                response.StatusCode == HttpStatusCode.OK,
+                $"Expected 200 OK but received {(int)response.StatusCode}. " +
+                $"Response: {content}");
         }
 
         [Fact]
