@@ -7,9 +7,11 @@ using ECommerce.OrderManagement.Infrastructure;
 using ECommerce.OrderManagement.Infrastructure.Identity;
 using ECommerce.OrderManagement.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -57,9 +59,14 @@ builder.Services
 
 builder.Services
     .AddHealthChecks()
+    .AddCheck(
+        "self",
+        () => HealthCheckResult.Healthy(),
+        tags: new[] { "live" })
     .AddDbContextCheck<ECommerceDbContext>(
         name: "database",
         tags: new[] { "ready" });
+
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -254,12 +261,21 @@ app.MapControllers();
 
 app.MapHealthChecks("/health");
 
+// Liveness: application is running.
+app.MapHealthChecks(
+    "/health",
+    new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("live")
+    });
+
+// Readiness: application and database are ready.
 app.MapHealthChecks(
     "/health/ready",
-    new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-Predicate = check => check.Tags.Contains("ready")
-});
+    new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready")
+    });
 
 app.Run();
 
