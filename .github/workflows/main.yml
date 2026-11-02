@@ -28,7 +28,7 @@ jobs:
 
       # Test databases
       IntegrationTestConnection: "Server=localhost,1433;Database=ECommerceDb_IntegrationTests;User Id=sa;Password=Ci_Test_Passw0rd!;TrustServerCertificate=True;Encrypt=False"
-      IdentityIntegrationTestConnection: "Server=localhost,1433;Database=ECommerceIdentityDb_IntegrationTests;User Id=sa;Password=Ci_Test_Passw0rd!;TrustServerCertificate=True;Encrypt=False"
+      IdentityIntegrationTestConnection: "Server=localhost,1433;Database=ECommerceIdentity_IntegrationTests;User Id=sa;Password=Ci_Test_Passw0rd!;TrustServerCertificate=True;Encrypt=False"
 
     steps:
       - name: Checkout repository
