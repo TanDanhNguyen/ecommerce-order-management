@@ -28,8 +28,15 @@ namespace ECommerce.OrderManagement.Infrastructure
             services.AddDbContext<ECommerceDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
+            var identityConnectionString =
+                configuration.GetConnectionString(
+                    "IdentityIntegrationTestConnection");
+
             services.AddDbContext<ApplicationIdentityDbContext>(options =>
-                 options.UseSqlServer(connectionString));
+                options.UseSqlServer(
+                    identityConnectionString,
+                    sql => sql.MigrationsAssembly(
+                        typeof(ApplicationIdentityDbContext).Assembly.FullName)));
 
             services
                 .AddIdentityCore<ApplicationUser>(options =>
