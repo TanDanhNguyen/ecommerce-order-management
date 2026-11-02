@@ -15,33 +15,46 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
     public class CustomWebApplicationFactory
     : WebApplicationFactory<Program>
     {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        protected override void ConfigureWebHost(
+            IWebHostBuilder builder)
         {
             builder.UseEnvironment("Testing");
 
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var connectionString =
+                configuration.GetConnectionString(
+                    "IntegrationTestConnection")
+                ?? throw new InvalidOperationException(
+                    "IntegrationTestConnection is missing.");
+
+            var identityConnectionString =
+                configuration.GetConnectionString(
+                    "IdentityIntegrationTestConnection")
+                ?? throw new InvalidOperationException(
+                    "IdentityIntegrationTestConnection is missing.");
+
+            // Configure application configuration BEFORE Program services.
+            builder.ConfigureAppConfiguration(
+                (_, config) =>
+                {
+                    config.AddInMemoryCollection(
+                        new Dictionary<string, string?>
+                        {
+                            ["ConnectionStrings:IntegrationTestConnection"]
+                                = connectionString,
+
+                            ["ConnectionStrings:IdentityIntegrationTestConnection"]
+                                = identityConnectionString
+                        });
+                });
+
             builder.ConfigureServices(services =>
             {
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppContext.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: false)
-                    .AddEnvironmentVariables()
-                    .Build();
-
-                var connectionString =
-                     configuration["IntegrationTestConnection"]
-                     ?? configuration.GetConnectionString(
-                         "IntegrationTestConnection")
-                     ?? throw new InvalidOperationException(
-                         "IntegrationTestConnection is missing.");
-
-                var identityConnectionString =
-                     configuration["IdentityIntegrationTestConnection"]
-                     ?? configuration.GetConnectionString(
-                         "IdentityIntegrationTestConnection")
-                     ?? throw new InvalidOperationException(
-                         "IdentityIntegrationTestConnection is missing.");
-
-                // Remove existing DbContext registrations.
                 services.RemoveAll<ECommerceDbContext>();
                 services.RemoveAll<ApplicationIdentityDbContext>();
 
@@ -51,13 +64,12 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                 services.RemoveAll<
                     DbContextOptions<ApplicationIdentityDbContext>>();
 
-                // Register Business database.
-                services.AddDbContext<ECommerceDbContext>(options =>
-                {
-                    options.UseSqlServer(connectionString);
-                });
+                services.AddDbContext<ECommerceDbContext>(
+                    options =>
+                    {
+                        options.UseSqlServer(connectionString);
+                    });
 
-                // Register Identity database.
                 services.AddDbContext<ApplicationIdentityDbContext>(
                     options =>
                     {
