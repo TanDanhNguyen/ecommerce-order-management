@@ -9,6 +9,7 @@ using ECommerce.OrderManagement.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -197,15 +198,22 @@ builder.Services.AddScoped<IOrderTransaction, OrderTransaction>();
 
 var app = builder.Build();
 
-    using (var scope = app.Services.CreateScope())
-    {
-        var roleManager = scope.ServiceProvider
-            .GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
 
-        await IdentityRoleSeeder.SeedAsync(roleManager);
-    }
+    var identityDbContext = services
+        .GetRequiredService<ApplicationIdentityDbContext>();
 
-    app.UseSerilogRequestLogging(options =>
+    await identityDbContext.Database.MigrateAsync();
+
+    var roleManager = services
+        .GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
+    await IdentityRoleSeeder.SeedAsync(roleManager);
+}
+
+app.UseSerilogRequestLogging(options =>
     {
         options.MessageTemplate =
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
