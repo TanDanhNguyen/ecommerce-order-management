@@ -65,7 +65,6 @@ jobs:
 
               IF DB_ID(N'ECommerceIdentity_IntegrationTests') IS NULL
                   CREATE DATABASE ECommerceIdentity_IntegrationTests;
-            "
 
       - name: Restore dependencies
         run: dotnet restore ECommerce.OrderManagement/ECommerce.OrderManagement.sln
