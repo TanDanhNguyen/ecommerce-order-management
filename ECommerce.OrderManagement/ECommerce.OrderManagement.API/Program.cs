@@ -18,24 +18,21 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
 
-try
-{
-    Log.Logger = new LoggerConfiguration()
-        .MinimumLevel.Information()
-        .Enrich.FromLogContext()
-        .WriteTo.Console(
-            outputTemplate:
-            "[{Timestamp:HH:mm:ss} {Level:u3}] " +
-            "[{CorrelationId}] {Message:lj}{NewLine}{Exception}")
-        .CreateLogger();
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .WriteTo.Console(
+        outputTemplate:
+        "[{Timestamp:HH:mm:ss} {Level:u3}] " +
+        "[{CorrelationId}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
-    var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
-    builder.Logging.ClearProviders();
-    builder.Host.UseSerilog();
+builder.Logging.ClearProviders();
+builder.Host.UseSerilog();
 
-
-    builder.Services
+builder.Services
         .AddControllers()
         .ConfigureApiBehaviorOptions(options =>
         {
@@ -93,42 +90,42 @@ var userId = httpContext.User.FindFirst(
 
 if (string.IsNullOrWhiteSpace(userId))
 {
-return RateLimitPartition.GetFixedWindowLimiter(
-    "unauthenticated",
-    _ => new FixedWindowRateLimiterOptions
-{
-PermitLimit = 5,
-Window = TimeSpan.FromMinutes(1),
-QueueLimit = 0,
-AutoReplenishment = true
-});
-}
+    return RateLimitPartition.GetFixedWindowLimiter(
+            "unauthenticated",
+            _ => new FixedWindowRateLimiterOptions
+        {
+        PermitLimit = 5,
+        Window = TimeSpan.FromMinutes(1),
+        QueueLimit = 0,
+        AutoReplenishment = true
+        });
+    }
 
-return RateLimitPartition.GetFixedWindowLimiter(
-    userId,
-    _ => new FixedWindowRateLimiterOptions
-{
-PermitLimit = 5,
-Window = TimeSpan.FromMinutes(1),
-QueueLimit = 0,
-AutoReplenishment = true
-});
-});
-});
+    return RateLimitPartition.GetFixedWindowLimiter(
+        userId,
+        _ => new FixedWindowRateLimiterOptions
+    {
+        PermitLimit = 5,
+        Window = TimeSpan.FromMinutes(1),
+        QueueLimit = 0,
+        AutoReplenishment = true
+        });
+        });
+    });
 
-builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(options =>
-{
-options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-{
-Name = "Authorization",
-Type = SecuritySchemeType.Http,
-Scheme = "bearer",
-BearerFormat = "JWT",
-In = ParameterLocation.Header,
-Description = "Enter your JWT access token."
-});
+    builder.Services.AddSwaggerGen(options =>
+    {
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+    Name = "Authorization",
+    Type = SecuritySchemeType.Http,
+    Scheme = "bearer",
+    BearerFormat = "JWT",
+    In = ParameterLocation.Header,
+    Description = "Enter your JWT access token."
+    });
 
 options.AddSecurityRequirement(new OpenApiSecurityRequirement
         {
@@ -225,7 +222,7 @@ var app = builder.Build();
         };
     });
 
-    app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<CorrelationIdMiddleware>();
 
 app.UseExceptionHandler();
 
@@ -255,14 +252,5 @@ Predicate = check => check.Tags.Contains("ready")
 });
 
 app.Run();
-}
-catch (Exception ex)
-{
-Log.Fatal(ex, "Application terminated unexpectedly");
-}
-finally
-{
-Log.CloseAndFlush();
-}
 
 public partial class Program { }
