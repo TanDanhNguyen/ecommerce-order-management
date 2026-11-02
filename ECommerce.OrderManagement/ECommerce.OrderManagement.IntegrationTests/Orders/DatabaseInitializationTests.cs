@@ -19,14 +19,17 @@ namespace ECommerce.OrderManagement.IntegrationTests.Orders
 
             await database.InitializeAsync();
 
-            var canConnect = await database.DbContext.Database.CanConnectAsync();
+            var businessCanConnect =
+                await database.DbContext.Database.CanConnectAsync();
 
-            Assert.True(
-                canConnect,
-                $"Cannot connect to database: " +
-                $"{database.DbContext.Database.GetDbConnection().DataSource} / " +
-                $"{database.DbContext.Database.GetDbConnection().Database}");
+            var identityCanConnect =
+                await database.IdentityDbContext.Database.CanConnectAsync();
+
+            Assert.True(businessCanConnect,
+                "Cannot connect to business integration test database.");
+
+            Assert.True(identityCanConnect,
+                "Cannot connect to identity integration test database.");
         }
-
     }
 }
