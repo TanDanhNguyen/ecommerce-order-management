@@ -21,6 +21,12 @@ jobs:
           - 1433:1433
 
     env:
+      # JWT configuration for Integration Tests
+      Jwt__Issuer: "ECommerce.OrderManagement.IntegrationTests"
+      Jwt__Audience: "ECommerce.OrderManagement.IntegrationTests"
+      Jwt__SigningKey: "IntegrationTestSigningKey_12345678901234567890"
+
+      # Test databases
       IntegrationTestConnection: "Server=localhost,1433;Database=ECommerceDb_IntegrationTests;User Id=sa;Password=Ci_Test_Passw0rd!;TrustServerCertificate=True;Encrypt=False"
       IdentityIntegrationTestConnection: "Server=localhost,1433;Database=ECommerceIdentityDb_IntegrationTests;User Id=sa;Password=Ci_Test_Passw0rd!;TrustServerCertificate=True;Encrypt=False"
 
@@ -52,4 +58,4 @@ jobs:
         run: dotnet build ECommerce.OrderManagement/ECommerce.OrderManagement.sln --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test ECommerce.OrderManagement/ECommerce.OrderManagement.sln --configuration Release --no-build
+        run: dotnet test ECommerce.OrderManagement/ECommerce.OrderManagement.sln 
