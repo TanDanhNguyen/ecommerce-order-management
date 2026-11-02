@@ -259,8 +259,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHealthChecks("/health");
-
 // Liveness: application is running.
 app.MapHealthChecks(
     "/health",
