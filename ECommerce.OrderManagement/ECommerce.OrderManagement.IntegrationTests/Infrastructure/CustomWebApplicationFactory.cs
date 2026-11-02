@@ -58,19 +58,6 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
             });
         }
 
-        protected override IHost CreateHost(IHostBuilder builder)
-        {
-            var host = base.CreateHost(builder);
-
-            Task.Run(async () =>
-            {
-                await VerifyTestDatabasesAsync();
-                await InitializeDatabasesAsync();
-            }).GetAwaiter().GetResult();
-
-            return host;
-        }
-
         public async Task VerifyTestDatabasesAsync()
         {
             using var scope = Services.CreateScope();
