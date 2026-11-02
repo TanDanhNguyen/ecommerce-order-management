@@ -8,11 +8,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
 {
     public class CustomWebApplicationFactory
-        : WebApplicationFactory<Program>
+    : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -47,6 +48,7 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
 
                 services.AddDbContext<ApplicationIdentityDbContext>(options =>
                     options.UseSqlServer(identityConnectionString));
+
                 services.AddAuthentication()
                 .AddScheme<
                     AuthenticationSchemeOptions,
@@ -54,6 +56,19 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                     TestAuthHandler.SchemeName,
                     _ => { });
             });
+        }
+
+        protected override IHost CreateHost(IHostBuilder builder)
+        {
+            var host = base.CreateHost(builder);
+
+            Task.Run(async () =>
+            {
+                await VerifyTestDatabasesAsync();
+                await InitializeDatabasesAsync();
+            }).GetAwaiter().GetResult();
+
+            return host;
         }
 
         public async Task VerifyTestDatabasesAsync()
@@ -89,6 +104,7 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                     "A DbContext is not connected to a clearly named test database.");
             }
         }
+
         public async Task InitializeDatabasesAsync()
         {
             using var scope = Services.CreateScope();
@@ -100,7 +116,6 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                 .GetRequiredService<ApplicationIdentityDbContext>();
 
             await dbContext.Database.MigrateAsync();
-
             await identityDbContext.Database.MigrateAsync();
         }
     }
