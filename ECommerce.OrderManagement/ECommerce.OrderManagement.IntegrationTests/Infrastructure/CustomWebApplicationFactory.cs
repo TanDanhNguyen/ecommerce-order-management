@@ -76,22 +76,36 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
             var identityDatabase =
                 identityDbContext.Database.GetDbConnection().Database;
 
-            if (businessDatabase == identityDatabase)
+            if (string.IsNullOrWhiteSpace(businessDatabase) ||
+                !businessDatabase.Contains(
+                    "IntegrationTests",
+                    StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException(
-                    "Business and Identity test databases must be separate.");
+                    $"ECommerceDbContext is connected to '{businessDatabase}', " +
+                    "which is not a clearly named test database.");
             }
 
-            if (!businessDatabase.Contains(
-                    "IntegrationTests",
-                    StringComparison.OrdinalIgnoreCase) ||
+            if (string.IsNullOrWhiteSpace(identityDatabase) ||
                 !identityDatabase.Contains(
                     "IntegrationTests",
                     StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException(
-                    "A DbContext is not connected to a clearly named test database.");
+                    $"ApplicationIdentityDbContext is connected to '{identityDatabase}', " +
+                    "which is not a clearly named test database.");
             }
+
+            if (string.Equals(
+                businessDatabase,
+                identityDatabase,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "Business and Identity test databases must be separate.");
+            }
+
+            await Task.CompletedTask;
         }
 
         public async Task InitializeDatabasesAsync()
