@@ -4,6 +4,7 @@ using ECommerce.OrderManagement.IntegrationTests.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,8 +16,7 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
     public class CustomWebApplicationFactory
     : WebApplicationFactory<Program>
     {
-        protected override void ConfigureWebHost(
-            IWebHostBuilder builder)
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Testing");
 
@@ -26,13 +26,15 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                 .AddEnvironmentVariables()
                 .Build();
 
-            var connectionString =
+            var businessConnectionString =
                 configuration["IntegrationTestConnection"]
+                ?? configuration.GetConnectionString("IntegrationTestConnection")
                 ?? throw new InvalidOperationException(
                     "IntegrationTestConnection is missing.");
 
             var identityConnectionString =
                 configuration["IdentityIntegrationTestConnection"]
+                ?? configuration.GetConnectionString("IdentityIntegrationTestConnection")
                 ?? throw new InvalidOperationException(
                     "IdentityIntegrationTestConnection is missing.");
 
@@ -42,14 +44,17 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                     new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:DefaultConnection"] =
-                            connectionString,
+                            businessConnectionString,
+
+                        ["IdentityIntegrationTestConnection"] =
+                            identityConnectionString,
 
                         ["ConnectionStrings:IdentityIntegrationTestConnection"] =
                             identityConnectionString
                     });
             });
 
-            builder.ConfigureServices(services =>
+            builder.ConfigureTestServices(services =>
             {
                 services.AddAuthentication()
                     .AddScheme<
