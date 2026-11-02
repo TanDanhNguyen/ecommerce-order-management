@@ -27,59 +27,30 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                 .Build();
 
             var connectionString =
-                configuration.GetConnectionString(
-                    "IntegrationTestConnection")
+                configuration["IntegrationTestConnection"]
                 ?? throw new InvalidOperationException(
                     "IntegrationTestConnection is missing.");
 
             var identityConnectionString =
-                configuration.GetConnectionString(
-                    "IdentityIntegrationTestConnection")
+                configuration["IdentityIntegrationTestConnection"]
                 ?? throw new InvalidOperationException(
                     "IdentityIntegrationTestConnection is missing.");
 
-            // Configure application configuration BEFORE Program services.
-            builder.ConfigureAppConfiguration(
-                (_, config) =>
-                {
-                    config.AddInMemoryCollection(
-                        new Dictionary<string, string?>
-                        {
-                            ["ConnectionStrings:IntegrationTestConnection"]
-                                = connectionString,
+            builder.ConfigureAppConfiguration((_, config) =>
+            {
+                config.AddInMemoryCollection(
+                    new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:DefaultConnection"] =
+                            connectionString,
 
-                            ["ConnectionStrings:IdentityIntegrationTestConnection"]
-                                = identityConnectionString
-                        });
-                });
+                        ["ConnectionStrings:IdentityIntegrationTestConnection"] =
+                            identityConnectionString
+                    });
+            });
 
             builder.ConfigureServices(services =>
             {
-                services.RemoveAll<ECommerceDbContext>();
-                services.RemoveAll<ApplicationIdentityDbContext>();
-
-                services.RemoveAll<
-                    DbContextOptions<ECommerceDbContext>>();
-
-                services.RemoveAll<
-                    DbContextOptions<ApplicationIdentityDbContext>>();
-
-                services.AddDbContext<ECommerceDbContext>(
-                    options =>
-                    {
-                        options.UseSqlServer(connectionString);
-                    });
-
-                services.AddDbContext<ApplicationIdentityDbContext>(
-                    options =>
-                    {
-                        options.UseSqlServer(
-                            identityConnectionString,
-                            sql => sql.MigrationsAssembly(
-                                typeof(ApplicationIdentityDbContext)
-                                    .Assembly.FullName));
-                    });
-
                 services.AddAuthentication()
                     .AddScheme<
                         AuthenticationSchemeOptions,
