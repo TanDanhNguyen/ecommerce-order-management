@@ -28,16 +28,18 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                     .Build();
 
                 var connectionString =
-                    configuration.GetConnectionString(
-                        "IntegrationTestConnection")
-                    ?? throw new InvalidOperationException(
-                        "IntegrationTestConnection is missing.");
+                     configuration["IntegrationTestConnection"]
+                     ?? configuration.GetConnectionString(
+                         "IntegrationTestConnection")
+                     ?? throw new InvalidOperationException(
+                         "IntegrationTestConnection is missing.");
 
                 var identityConnectionString =
-                    configuration.GetConnectionString(
-                        "IdentityIntegrationTestConnection")
-                    ?? throw new InvalidOperationException(
-                        "IdentityIntegrationTestConnection is missing.");
+                     configuration["IdentityIntegrationTestConnection"]
+                     ?? configuration.GetConnectionString(
+                         "IdentityIntegrationTestConnection")
+                     ?? throw new InvalidOperationException(
+                         "IdentityIntegrationTestConnection is missing.");
 
                 // Remove existing DbContext registrations.
                 services.RemoveAll<ECommerceDbContext>();
