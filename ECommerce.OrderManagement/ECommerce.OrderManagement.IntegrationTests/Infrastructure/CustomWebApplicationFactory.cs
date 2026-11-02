@@ -89,5 +89,19 @@ namespace ECommerce.OrderManagement.Infrastructure.Infrastructure
                     "A DbContext is not connected to a clearly named test database.");
             }
         }
+        public async Task InitializeDatabasesAsync()
+        {
+            using var scope = Services.CreateScope();
+
+            var dbContext = scope.ServiceProvider
+                .GetRequiredService<ECommerceDbContext>();
+
+            var identityDbContext = scope.ServiceProvider
+                .GetRequiredService<ApplicationIdentityDbContext>();
+
+            await dbContext.Database.MigrateAsync();
+
+            await identityDbContext.Database.MigrateAsync();
+        }
     }
 }

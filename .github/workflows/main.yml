@@ -50,6 +50,22 @@ jobs:
           done
           echo "SQL Server failed to start"
           exit 1
+          
+       - name: Create Integration Test Databases
+        run: |
+          docker exec "${{ job.services.sqlserver.id }}" \
+            /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost \
+            -U sa \
+            -P 'Ci_Test_Passw0rd!' \
+            -C \
+            -Q "
+              IF DB_ID(N'ECommerceDb_IntegrationTests') IS NULL
+                  CREATE DATABASE ECommerceDb_IntegrationTests;
+
+              IF DB_ID(N'ECommerceIdentity_IntegrationTests') IS NULL
+                  CREATE DATABASE ECommerceIdentity_IntegrationTests;
+            "
 
       - name: Restore dependencies
         run: dotnet restore ECommerce.OrderManagement/ECommerce.OrderManagement.sln
